@@ -8,8 +8,6 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    # Forgejo uses a single ReadWriteOnce volume, so a rolling update would
-    # leave two pods fighting over the same mount. Recreate avoids that.
     type: Recreate
   selector:
     matchLabels:
@@ -20,7 +18,6 @@ spec:
         app: forgejo
     spec:
       securityContext:
-        # Rootless image runs as uid 1000; fsGroup makes the PVC writable by it.
         fsGroup: 1000
       containers:
         - name: forgejo
