@@ -1,0 +1,18 @@
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: forgejo.homelab.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+gitea:
+  config:
+    server:
+      DOMAIN: forgejo.homelab.local
+      ROOT_URL: http://forgejo.homelab.local/
