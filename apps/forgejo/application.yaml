@@ -7,16 +7,10 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  sources:
-    - repoURL: code.forgejo.org/forgejo-helm
-      chart: forgejo
-      targetRevision: 17.1.7
-      helm:
-        valueFiles:
-          - $values/apps/forgejo/values.yaml
-    - repoURL: https://github.com/jddemonteverde/homelab33.git
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://github.com/jddemonteverde/homelab33.git
+    targetRevision: main
+    path: apps/forgejo/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: forgejo
@@ -24,5 +18,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
