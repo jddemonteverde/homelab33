@@ -4,5 +4,6 @@ resources:
   - namespace.yaml
   - pvc.yaml
   - deployment.yaml
-  - service.yaml
+  - service-http.yaml
+  - service-ssh.yaml
   - ingress.yaml

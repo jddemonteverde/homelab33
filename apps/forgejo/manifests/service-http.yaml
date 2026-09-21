@@ -13,19 +13,3 @@ spec:
     - name: http
       port: 3000
       targetPort: http
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: forgejo-ssh
-  namespace: forgejo
-  labels:
-    app: forgejo
-spec:
-  type: ClusterIP
-  selector:
-    app: forgejo
-  ports:
-    - name: ssh
-      port: 22
-      targetPort: ssh
