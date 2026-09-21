@@ -1,0 +1,11 @@
+global:
+  domain: argocd.homelab.local
+
+configs:
+  params:
+    server.insecure: true
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
