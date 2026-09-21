@@ -1,28 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: forgejo
+  name: argocd
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
-    - repoURL: oci://code.forgejo.org/forgejo-helm
-      chart: forgejo
-      targetRevision: 17.1.7
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.9.2
       helm:
+        releaseName: argocd
         valueFiles:
-          - $values/forgejo/values.yaml
+          - $values/infra/argocd/values.yaml
     - repoURL: https://github.com/jddemonteverde/homelab33.git
       targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: forgejo
+    namespace: argocd
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
