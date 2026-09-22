@@ -43,6 +43,25 @@ spec:
               value: forgejo.homelab.local
             - name: GITEA__server__ROOT_URL
               value: http://forgejo.homelab.local/
+            - name: GITEA__server__SSH_DOMAIN
+              value: forgejo.homelab.local
+            - name: GITEA__server__LFS_START_SERVER
+              value: "true"
+            - name: GITEA__database__DB_TYPE
+              value: sqlite3
+            - name: GITEA__database__PATH
+              value: /data/data/gitea.db
+            - name: GITEA__session__PROVIDER
+              value: file
+            - name: GITEA__service__DISABLE_REGISTRATION
+              value: "false"
+            - name: GITEA__security__INSTALL_LOCK
+              value: "true"
+            - name: GITEA__security__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-security
+                  key: SECRET_KEY
           ports:
             - name: http
               containerPort: 3000
