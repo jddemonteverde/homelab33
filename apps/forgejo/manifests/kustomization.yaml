@@ -7,3 +7,4 @@ resources:
   - service-http.yaml
   - service-ssh.yaml
   - ingress.yaml
+  - secrets
