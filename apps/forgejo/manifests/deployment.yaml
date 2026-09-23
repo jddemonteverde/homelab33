@@ -54,7 +54,7 @@ spec:
             - name: GITEA__session__PROVIDER
               value: file
             - name: GITEA__service__DISABLE_REGISTRATION
-              value: "false"
+              value: "true"
             - name: GITEA__security__INSTALL_LOCK
               value: "true"
             - name: GITEA__security__SECRET_KEY
