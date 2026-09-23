@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo-runner
+  namespace: forgejo-runner
+  labels:
+    app: forgejo-runner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forgejo-runner
+  template:
+    metadata:
+      labels:
+        app: forgejo-runner
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+        # Native sidecar: the runner starts once dockerd answers and stops before it.
+        - name: dind
+          image: docker.io/library/docker:29.8.1-dind
+          restartPolicy: Always
+          # Leading "dockerd" skips the image's default TCP listener. Socket group 1000 is the runner's group.
+          args:
+            - dockerd
+            - --host=unix:///run/dind/docker.sock
+            - --group=1000
+          env:
+            - name: DOCKER_HOST
+              value: unix:///run/dind/docker.sock
+          securityContext:
+            privileged: true
+          startupProbe:
+            exec:
+              command:
+                - docker
+                - info
+            periodSeconds: 2
+            failureThreshold: 30
+          volumeMounts:
+            - name: dind-socket
+              mountPath: /run/dind
+            - name: dind-storage
+              mountPath: /var/lib/docker
+      containers:
+        - name: runner
+          image: data.forgejo.org/forgejo/runner:13.2.0
+          args:
+            - forgejo-runner
+            - daemon
+            - --config=/etc/forgejo-runner/config.yml
+            - --url=http://forgejo-http.forgejo.svc.cluster.local:3000/
+            - --uuid=$(RUNNER_UUID)
+            - --token-url=file:/run/secrets/forgejo-runner/token
+          env:
+            - name: DOCKER_HOST
+              value: unix:///run/dind/docker.sock
+            - name: RUNNER_UUID
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-runner-registration
+                  key: uuid
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /etc/forgejo-runner
+              readOnly: true
+            - name: registration
+              mountPath: /run/secrets/forgejo-runner
+              readOnly: true
+            - name: dind-socket
+              mountPath: /run/dind
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: forgejo-runner-config
+        - name: registration
+          secret:
+            secretName: forgejo-runner-registration
+        - name: dind-socket
+          emptyDir: {}
+        - name: dind-storage
+          emptyDir: {}
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

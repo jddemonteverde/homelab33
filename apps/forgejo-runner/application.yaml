@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo-runner
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jddemonteverde/homelab33.git
+    targetRevision: main
+    path: apps/forgejo-runner/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo-runner
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-runner-config
+  namespace: forgejo-runner
+data:
+  config.yml: |
+    runner:
+      labels:
+        - docker:docker://data.forgejo.org/oci/node:24-trixie
+        - ubuntu-latest:docker://data.forgejo.org/oci/node:24-trixie
