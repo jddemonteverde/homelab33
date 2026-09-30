@@ -1,0 +1,13 @@
+# k3s's CoreDNS imports *.override keys from this ConfigMap. Pods resolve the
+# registry host to Traefik in-cluster, so pushes never leave the cluster.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  forgejo.override: |
+    rewrite stop {
+      name exact forgejo.homelab.local traefik.kube-system.svc.cluster.local
+      answer auto
+    }
