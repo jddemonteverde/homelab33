@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: finance-app
+  namespace: finance-app
+  labels:
+    app: finance-app
+spec:
+  type: ClusterIP
+  selector:
+    app: finance-app
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

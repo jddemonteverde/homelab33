@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: finance-app
+  namespace: finance-app
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: finance.homelab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: finance-app
+                port:
+                  number: 3000

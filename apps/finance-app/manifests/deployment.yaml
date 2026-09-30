@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-app
+  namespace: finance-app
+  labels:
+    app: finance-app
+spec:
+  replicas: 1
+  # Two pods would open the same SQLite file.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: finance-app
+  template:
+    metadata:
+      labels:
+        app: finance-app
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: finance-app
+          image: forgejo.homelab.local/jddemonteverde/finance-app:1.0.0
+          env:
+            - name: APP_TIMEZONE
+              value: Asia/Manila
+            - name: DATABASE_PATH
+              value: /data/finance-app.db
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: finance-app-session
+                  key: SESSION_SECRET
+          ports:
+            - name: http
+              containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: finance-app-data
