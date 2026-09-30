@@ -14,6 +14,8 @@ spec:
       app: forgejo-runner
   template:
     metadata:
+      annotations:
+        checksum/config: fe321ac7d1ad2822f30cc727d2735ae4db0074763d908a3510bff47a9bb03450
       labels:
         app: forgejo-runner
     spec:

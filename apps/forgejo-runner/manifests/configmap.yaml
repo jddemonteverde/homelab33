@@ -9,3 +9,5 @@ data:
       labels:
         - docker:docker://data.forgejo.org/oci/node:24-trixie
         - ubuntu-latest:docker://data.forgejo.org/oci/node:24-trixie
+    container:
+      docker_host: automount
