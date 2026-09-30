@@ -1,5 +1,5 @@
-# k3s's CoreDNS imports *.override keys from this ConfigMap. Pods resolve the
-# registry host to Traefik in-cluster, so pushes never leave the cluster.
+# k3s's CoreDNS imports *.override keys from this ConfigMap. Forgejo hands
+# Actions jobs its ROOT_URL for checkout; this keeps that in-cluster via Traefik.
 apiVersion: v1
 kind: ConfigMap
 metadata:
