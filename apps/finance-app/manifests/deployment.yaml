@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: finance-app
-          image: forgejo.homelab.local/jddemonteverde/finance-app:1.0.0
+          image: 10.43.200.10:5000/finance-app:1.0.0
           env:
             - name: APP_TIMEZONE
               value: Asia/Manila
