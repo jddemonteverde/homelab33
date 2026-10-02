@@ -1,1 +1,4 @@
 fullnameOverride: sealed-secrets-controller
+# Off the CI node; see "Node placement" in AGENTS.md.
+nodeSelector:
+  node-role.kubernetes.io/control-plane: "true"

@@ -1,0 +1,11 @@
+# k3s installs Traefik from its bundled chart; a HelmChartConfig overrides that chart's values.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    # Off the CI node; see "Node placement" in AGENTS.md.
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"

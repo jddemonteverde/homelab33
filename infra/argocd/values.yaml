@@ -1,5 +1,8 @@
 global:
   domain: argocd.homelab.local
+  # Off the CI node; see "Node placement" in AGENTS.md.
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
 
 configs:
   params:
