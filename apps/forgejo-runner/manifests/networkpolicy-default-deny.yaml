@@ -1,0 +1,12 @@
+# Pods here run code from CI workflows. Nothing gets in or out unless another policy in this
+# namespace allows it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: forgejo-runner
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
