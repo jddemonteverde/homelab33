@@ -15,11 +15,19 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: fe321ac7d1ad2822f30cc727d2735ae4db0074763d908a3510bff47a9bb03450
+        checksum/config: fd18c36df6670f6024047fac4de00ac3c8c9af28a8c4f8ed87613bddf6728a49
       labels:
         app: forgejo-runner
     spec:
       automountServiceAccountToken: false
+      # CI runs code from workflows; see "Node placement" in AGENTS.md.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
       initContainers:
         # Native sidecar: the runner starts once dockerd answers and stops before it.
         - name: dind

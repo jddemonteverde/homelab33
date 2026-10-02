@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: buildkitd-config
+  namespace: forgejo-runner
+data:
+  buildkitd.toml: |
+    # apps/registry serves plain HTTP inside the cluster.
+    [registry."10.43.200.10:5000"]
+      http = true

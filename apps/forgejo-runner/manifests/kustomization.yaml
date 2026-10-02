@@ -4,4 +4,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - deployment.yaml
+  - configmap-buildkitd.yaml
+  - deployment-buildkitd.yaml
+  - service-buildkitd.yaml
   - secrets

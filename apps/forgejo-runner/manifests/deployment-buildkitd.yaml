@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buildkitd
+  namespace: forgejo-runner
+  labels:
+    app: buildkitd
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: buildkitd
+  template:
+    metadata:
+      annotations:
+        checksum/config: ae3ed36d1e8f2d08947144ef0b288398f7b3d713d7e967e9c10dc31844575610
+      labels:
+        app: buildkitd
+    spec:
+      automountServiceAccountToken: false
+      # Builds run Dockerfile steps from CI; see "Node placement" in AGENTS.md.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+      containers:
+        - name: buildkitd
+          image: docker.io/moby/buildkit:v0.33.0-rootless
+          args:
+            - --config=/etc/buildkit/buildkitd.toml
+            - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
+            # Plain TCP: networkpolicy-buildkitd.yaml admits only the runner.
+            - --addr=tcp://0.0.0.0:1234
+            - --oci-worker-no-process-sandbox
+          env:
+            - name: BUILDKIT_HOST
+              value: unix:///run/user/1000/buildkit/buildkitd.sock
+          ports:
+            - name: buildkit
+              containerPort: 1234
+          # Rootless, not privileged: builds run as UID 1000 inside a user namespace, which
+          # the default seccomp and AppArmor profiles would block.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: Unconfined
+            appArmorProfile:
+              type: Unconfined
+          readinessProbe:
+            exec:
+              command:
+                - buildctl
+                - debug
+                - workers
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - buildctl
+                - debug
+                - workers
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          volumeMounts:
+            - name: config
+              mountPath: /etc/buildkit
+              readOnly: true
+            - name: state
+              mountPath: /home/user/.local/share/buildkit
+      volumes:
+        - name: config
+          configMap:
+            name: buildkitd-config
+        - name: state
+          emptyDir: {}

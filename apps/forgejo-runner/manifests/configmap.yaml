@@ -10,4 +10,6 @@ data:
         - docker:docker://data.forgejo.org/oci/node:24-trixie
         - ubuntu-latest:docker://data.forgejo.org/oci/node:24-trixie
     container:
-      docker_host: automount
+      # No Docker socket in jobs: with it, a job can start a privileged container and
+      # take over the node. Images are built by buildkitd instead.
+      docker_host: "-"
