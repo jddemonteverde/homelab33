@@ -12,8 +12,8 @@ committed byte is public.
 | Path | Purpose |
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
-| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart) and Sealed Secrets. Charts are pulled by Argo CD with values from this repo. |
-| `apps/` | Workloads (currently Forgejo) as plain Kustomize manifests under `apps/<app>/manifests/`. |
+| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
+| `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
 any part of the tree can be built with `kubectl kustomize <dir>`.
@@ -31,6 +31,20 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   volume and its data.
 - Pin every image tag and every chart `targetRevision`. Never `latest`.
 - Prefer rootless images and set `securityContext` (see `apps/forgejo/manifests/deployment.yaml`).
+- Node placement: anything that can read every Secret or administer the cluster (Argo CD, Sealed
+  Secrets, Traefik) runs only on the control-plane node
+  (`nodeSelector: node-role.kubernetes.io/control-plane: "true"`). CI (`forgejo-runner`,
+  `buildkitd`) runs code from workflows and must never run there (required node affinity:
+  `node-role.kubernetes.io/control-plane` `DoesNotExist`). New components follow the same split.
+- NetworkPolicies: each app namespace has a policy that selects all its pods and allows ingress
+  only from Traefik on the app's port, plus any source it names. `forgejo-runner` also denies
+  egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. The registry has no policy
+  yet: nodes pull from it, and pod selectors cannot match node traffic.
+- CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
+  the rootless `buildkitd` in `forgejo-runner`, using
+  `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
+- When a ConfigMap mounted by a Deployment changes, set that Deployment's `checksum/config`
+  annotation to the output of `shasum -a 256 <configmap file>` so its pods restart.
 - Prefer plain manifests. When a Helm chart is needed, follow `infra/argocd/application.yaml`:
   multi-source Application, pinned chart, values in a `values.yaml` next to it via the `$values`
   ref, no inline values.
@@ -63,12 +77,16 @@ Measures in place:
 - Every image and chart version is pinned, so each deploy is reproducible and reviewable.
 - Workloads run rootless where the image supports it.
 - Services are published only on `*.homelab.local` hostnames, which resolve on the LAN only.
+- CI is contained: jobs have no Docker socket, images build on rootless BuildKit, and CI pods
+  never share a node with the controllers that can read every Secret.
+- App namespaces accept traffic only from Traefik and the sources their NetworkPolicy names.
 
 Rules for agents:
 
 - Any change that widens exposure (`NodePort`, `LoadBalancer`, `hostNetwork`, `privileged`,
-  disabling authentication, exposing a service beyond the LAN) must be stated explicitly in your
-  response, never slipped into a larger diff.
+  mounting a Docker socket, loosening a NetworkPolicy or the node placement rules, disabling
+  authentication, exposing a service beyond the LAN) must be stated explicitly in your response,
+  never slipped into a larger diff.
 - Do not run cluster-mutating commands (`kubectl apply`, `delete`, `edit`, `argocd app sync`).
   The cluster is changed only through git. Read-only commands (`kubectl get`, `kubectl kustomize`)
   are fine when the task calls for them.
