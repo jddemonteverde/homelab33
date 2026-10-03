@@ -1,0 +1,15 @@
+# Lets the proxy keep its tailnet identity in the tailscale-state Secret, and nothing else.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tailscale
+  namespace: tailscale
+rules:
+  # RBAC can't limit create by name; the proxy creates tailscale-state on its first start.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["tailscale-state"]
+    verbs: ["get", "update", "patch"]

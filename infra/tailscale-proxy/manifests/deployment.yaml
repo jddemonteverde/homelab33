@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailscale
+  namespace: tailscale
+  labels:
+    app: tailscale
+spec:
+  replicas: 1
+  # One tailnet identity: two pods would fight over the same device.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tailscale
+  template:
+    metadata:
+      annotations:
+        checksum/config: cae36007d55b173cb756b9b94cf22d71b25e7c3fae78a413a1b82941ae257142
+      labels:
+        app: tailscale
+    spec:
+      serviceAccountName: tailscale
+      # Holds the cluster's tailnet identity; see "Node placement" in AGENTS.md.
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "true"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: tailscale
+          image: docker.io/tailscale/tailscale:v1.102.4
+          env:
+            # Userspace networking needs no /dev/net/tun, so the pod needs no privileges.
+            - name: TS_USERSPACE
+              value: "true"
+            - name: TS_HOSTNAME
+              value: lab
+            - name: TS_KUBE_SECRET
+              value: tailscale-state
+            # The single-use key is spent after the first login; never present it again.
+            - name: TS_AUTH_ONCE
+              value: "true"
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: tailscale-auth
+                  key: TS_AUTHKEY
+                  optional: true
+            - name: TS_SERVE_CONFIG
+              value: /config/serve.json
+            - name: TS_ENABLE_HEALTH_CHECK
+              value: "true"
+            - name: TS_LOCAL_ADDR_PORT
+              value: "[::]:9002"
+          ports:
+            - name: health
+              containerPort: 9002
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - name: serve-config
+              mountPath: /config
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: var-lib
+              mountPath: /var/lib/tailscale
+      volumes:
+        - name: serve-config
+          configMap:
+            name: tailscale-serve
+        - name: tmp
+          emptyDir: {}
+        - name: var-lib
+          emptyDir: {}

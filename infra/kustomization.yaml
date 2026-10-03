@@ -6,3 +6,4 @@ resources:
   - cert-manager
   - coredns-custom
   - traefik
+  - tailscale-proxy

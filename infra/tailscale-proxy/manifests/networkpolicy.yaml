@@ -1,0 +1,57 @@
+# Nothing in the cluster may connect to the proxy; tailnet traffic arrives over its own outbound
+# connections. Outbound, it reaches only what it needs.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tailscale
+  namespace: tailscale
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 8443
+    # The Kubernetes API, where the proxy saves its identity.
+    - ports:
+        - protocol: TCP
+          port: 6443
+    # Tailscale's coordination and relay servers, and WireGuard to peers on the internet.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+    # Direct WireGuard paths to my devices when they're on the home network.
+    - to:
+        - ipBlock:
+            cidr: 192.168.0.0/16
+      ports:
+        - protocol: UDP
