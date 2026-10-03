@@ -55,6 +55,9 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
 - Manifests carry no comments unless something is genuinely non-obvious.
 - Hostnames are `<app>.homelab.local` with `ingressClassName: traefik`. Services are plain HTTP
   and only resolvable on the LAN.
+- Traefik serves the Let's Encrypt wildcard certificate for `*.lab.jddemonteverde.com` as its
+  default (the `TLSStore` named `default` in `infra/traefik`), so an Ingress under that name
+  needs no `tls:` section.
 - Before committing, run `kubectl kustomize <dir>` for every directory you touched and confirm it
   builds.
 
