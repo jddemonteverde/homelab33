@@ -9,3 +9,16 @@ spec:
     # Off the CI node; see "Node placement" in AGENTS.md.
     nodeSelector:
       node-role.kubernetes.io/control-plane: "true"
+    # No LAN listener: k3s's ServiceLB only exposes LoadBalancer Services on the nodes. Traefik is
+    # reached through the Tailscale proxy (infra/tailscale-proxy) and, in-cluster, by its Service.
+    service:
+      spec:
+        type: ClusterIP
+    ports:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
