@@ -54,11 +54,10 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   ref, no inline values.
 - Manifests carry no comments unless something is genuinely non-obvious.
 - Hostnames are `<app>.lab.jddemonteverde.com` with `ingressClassName: traefik`, served over
-  HTTPS and reachable only from the tailnet. Forgejo and Argo CD also keep their old
-  `<app>.homelab.local` names (plain HTTP, LAN only) until the move is finished; don't add new
-  `.homelab.local` names. An app that pods call by its lab name (Forgejo, for Actions checkouts)
-  also needs a rewrite in `infra/coredns-custom`, because publicly the name points at a
-  Tailscale address pods can't reach.
+  HTTPS and reachable only from the tailnet. Traefik has no LAN listener (its Service is
+  `ClusterIP`, set in `infra/traefik`) and redirects HTTP to HTTPS. An app that pods call by its
+  lab name (Forgejo, for Actions checkouts) also needs a rewrite in `infra/coredns-custom`,
+  because publicly the name points at a Tailscale address pods can't reach.
 - Traefik serves the Let's Encrypt wildcard certificate for `*.lab.jddemonteverde.com` as its
   default (the `TLSStore` named `default` in `infra/traefik`), so an Ingress under that name
   needs no `tls:` section.
@@ -89,9 +88,9 @@ Measures in place:
   never leaves the cluster, so an encrypted secret in git is safe to publish.
 - Every image and chart version is pinned, so each deploy is reproducible and reviewable.
 - Workloads run rootless where the image supports it.
-- Services are published on `*.lab.jddemonteverde.com` over HTTPS, plus the older
-  `*.homelab.local` names (LAN only) while the move finishes. Traefik is reachable from the
-  tailnet through the Tailscale proxy (tagged `tag:k8s-ingress`), which
+- Services are published only on `*.lab.jddemonteverde.com`, over HTTPS. Traefik has no LAN
+  listener; it is reachable only from the tailnet, through the Tailscale proxy (tagged
+  `tag:k8s-ingress`), which
   the tailnet policy grants only to tailnet members, on ports 80 and 443. It joined with a
   single-use key, so no reusable Tailscale credential is stored anywhere. Nothing is exposed to
   the internet; never enable Tailscale Funnel.
