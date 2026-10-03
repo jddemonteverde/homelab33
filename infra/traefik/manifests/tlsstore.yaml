@@ -1,0 +1,10 @@
+# Traefik only uses the store named "default", and only Secrets in its own namespace. The
+# certificate comes from infra/cert-manager.
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: wildcard-lab-tls
