@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: finance.homelab.local
+    - host: finance.lab.jddemonteverde.com
       http:
         paths:
           - path: /
