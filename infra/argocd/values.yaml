@@ -1,5 +1,5 @@
 global:
-  domain: argocd.homelab.local
+  domain: argocd.lab.jddemonteverde.com
   # Off the CI node; see "Node placement" in AGENTS.md.
   nodeSelector:
     node-role.kubernetes.io/control-plane: "true"
@@ -12,3 +12,7 @@ server:
   ingress:
     enabled: true
     ingressClassName: traefik
+    # Old LAN name, kept until bookmarks have moved to the lab name.
+    extraHosts:
+      - name: argocd.homelab.local
+        path: /
