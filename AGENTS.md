@@ -12,7 +12,7 @@ committed byte is public.
 | Path | Purpose |
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
-| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
+| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
 | `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
@@ -32,7 +32,7 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
 - Pin every image tag and every chart `targetRevision`. Never `latest`.
 - Prefer rootless images and set `securityContext` (see `apps/forgejo/manifests/deployment.yaml`).
 - Node placement: anything that can read every Secret or administer the cluster (Argo CD, Sealed
-  Secrets, Traefik) runs only on the control-plane node
+  Secrets, Traefik, cert-manager) runs only on the control-plane node
   (`nodeSelector: node-role.kubernetes.io/control-plane: "true"`). CI (`forgejo-runner`,
   `buildkitd`) runs code from workflows and must never run there (required node affinity:
   `node-role.kubernetes.io/control-plane` `DoesNotExist`). New components follow the same split.
@@ -67,8 +67,10 @@ Never commit:
 - Argo CD's `argocd-initial-admin-secret`, Forgejo's `SECRET_KEY` / `INTERNAL_TOKEN` /
   `JWT_SECRET` / `LFS_JWT_SECRET`, or any other generated credential.
 - Secret values in commit messages, comments, or file names.
-- Details that identify the home network beyond what is already here: public IPs, WAN domains,
-  MAC addresses, router or ISP details. `*.homelab.local` hostnames are fine.
+- Details that identify the home network beyond what is already here: public IPs, MAC
+  addresses, router or ISP details, or domains other than the ones below. `*.homelab.local` and
+  `*.lab.jddemonteverde.com` hostnames are fine; the latter appear in public certificate logs
+  anyway.
 
 Measures in place:
 
@@ -125,7 +127,9 @@ a normal `Secret` in the cluster.
   never by inlining values.
 - Infra components installed from Helm charts have no manifests path. If one ever needs a
   `SealedSecret`, add `infra/<component>/secrets/` and reference it as an additional `path:`
-  source on that Application.
+  source on that Application. Objects that use the chart's own CRDs (cert-manager's issuers and
+  certificate) go in `infra/<component>/manifests/`, another `path:` source, annotated
+  `argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true`.
 
 ## Commit messages
 
