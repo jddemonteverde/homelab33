@@ -12,7 +12,7 @@ committed byte is public.
 | Path | Purpose |
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
-| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
+| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
 | `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
@@ -36,10 +36,14 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   (`nodeSelector: node-role.kubernetes.io/control-plane: "true"`). CI (`forgejo-runner`,
   `buildkitd`) runs code from workflows and must never run there (required node affinity:
   `node-role.kubernetes.io/control-plane` `DoesNotExist`). New components follow the same split.
+  The Tailscale proxy (`infra/tailscale-proxy`) also runs on the control plane, because it holds
+  the cluster's tailnet identity. It runs unprivileged (userspace networking) in a namespace that
+  enforces the `restricted` Pod Security Standard; keep it that way.
 - NetworkPolicies: each app namespace has a policy that selects all its pods and allows ingress
   only from Traefik on the app's port, plus any source it names. `forgejo-runner` also denies
-  egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. The registry has no policy
-  yet: nodes pull from it, and pod selectors cannot match node traffic.
+  egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `tailscale` accepts nothing
+  and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
+  registry has no policy yet: nodes pull from it, and pod selectors cannot match node traffic.
 - CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
   the rootless `buildkitd` in `forgejo-runner`, using
   `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
@@ -78,7 +82,11 @@ Measures in place:
   never leaves the cluster, so an encrypted secret in git is safe to publish.
 - Every image and chart version is pinned, so each deploy is reproducible and reviewable.
 - Workloads run rootless where the image supports it.
-- Services are published only on `*.homelab.local` hostnames, which resolve on the LAN only.
+- Services are published on `*.homelab.local` hostnames, which resolve on the LAN only. Traefik is
+  also reachable from the tailnet through the Tailscale proxy (tagged `tag:k8s-ingress`), which
+  the tailnet policy grants only to tailnet members, on ports 80 and 443. It joined with a
+  single-use key, so no reusable Tailscale credential is stored anywhere. Nothing is exposed to
+  the internet; never enable Tailscale Funnel.
 - CI is contained: jobs have no Docker socket, images build on rootless BuildKit, and CI pods
   never share a node with the controllers that can read every Secret.
 - App namespaces accept traffic only from Traefik and the sources their NetworkPolicy names.
