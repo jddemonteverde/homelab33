@@ -40,11 +40,11 @@ spec:
             - name: SSH_PORT
               value: "22"
             - name: GITEA__server__DOMAIN
-              value: forgejo.homelab.local
+              value: forgejo.lab.jddemonteverde.com
             - name: GITEA__server__ROOT_URL
-              value: http://forgejo.homelab.local/
+              value: https://forgejo.lab.jddemonteverde.com/
             - name: GITEA__server__SSH_DOMAIN
-              value: forgejo.homelab.local
+              value: forgejo.lab.jddemonteverde.com
             - name: GITEA__server__LFS_START_SERVER
               value: "true"
             - name: GITEA__database__DB_TYPE

@@ -6,6 +6,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
+    - host: forgejo.lab.jddemonteverde.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forgejo-http
+                port:
+                  number: 3000
+    # Old LAN name, kept until clones and bookmarks have moved to the lab name.
     - host: forgejo.homelab.local
       http:
         paths:
