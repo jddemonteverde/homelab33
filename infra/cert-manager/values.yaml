@@ -1,0 +1,9 @@
+crds:
+  enabled: true
+# Check DNS-01 records against public resolvers, not the cluster's CoreDNS rewrites.
+dns01RecursiveNameservers: "1.1.1.1:53,9.9.9.9:53"
+dns01RecursiveNameserversOnly: true
+global:
+  # Off the CI node; see "Node placement" in AGENTS.md. Applies to every cert-manager component.
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"

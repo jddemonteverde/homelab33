@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-lab
+  # Traefik's TLSStore can only use a Secret from its own namespace.
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: wildcard-lab-tls
+  dnsNames:
+    - lab.jddemonteverde.com
+    - "*.lab.jddemonteverde.com"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production

@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - argocd
   - sealed-secrets
+  - cert-manager
   - coredns-custom
   - traefik
