@@ -1,5 +1,6 @@
-# k3s's CoreDNS imports *.override keys from this ConfigMap. Forgejo hands
-# Actions jobs its ROOT_URL for checkout; this keeps that in-cluster via Traefik.
+# k3s's CoreDNS imports *.override keys from this ConfigMap. Forgejo hands Actions jobs its
+# ROOT_URL for checkout; these keep that lookup in-cluster, straight to Traefik, which serves
+# the wildcard certificate. Publicly the lab name points at a Tailscale address pods can't reach.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,6 +8,10 @@ metadata:
   namespace: kube-system
 data:
   forgejo.override: |
+    rewrite stop {
+      name exact forgejo.lab.jddemonteverde.com traefik.kube-system.svc.cluster.local
+      answer auto
+    }
     rewrite stop {
       name exact forgejo.homelab.local traefik.kube-system.svc.cluster.local
       answer auto
