@@ -14,6 +14,14 @@ spec:
     service:
       spec:
         type: ClusterIP
+    # A ClusterIP Service has no load-balancer address to publish, which left every Ingress without
+    # one and Argo CD reporting them Progressing. Write the public lab name instead; it changes no routing.
+    providers:
+      kubernetesIngress:
+        publishedService:
+          enabled: false
+    additionalArguments:
+      - --providers.kubernetesingress.ingressendpoint.hostname=lab.jddemonteverde.com
     ports:
       web:
         http:
