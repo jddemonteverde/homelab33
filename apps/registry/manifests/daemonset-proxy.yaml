@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 0736cdf9364ae530125b564dead4a0ef9a24d10209d2267d56f6f3d21a0ae851
+        checksum/config: 6d8ae69bc60cecb73ca1cae26dfc69a6885ef7f338c7b76bd64785037ced3123
       labels:
         app: registry-proxy
     spec:

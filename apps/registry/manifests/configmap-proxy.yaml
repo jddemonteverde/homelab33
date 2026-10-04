@@ -14,7 +14,7 @@ data:
       timeout client 5m
       timeout server 5m
 
-    frontend registry
+    frontend pulls
       bind :5000
       default_backend registry
 
