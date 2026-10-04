@@ -43,10 +43,20 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   only from Traefik on the app's port, plus any source it names. `forgejo-runner` also denies
   egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `tailscale` accepts nothing
   and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
-  registry has no policy yet: nodes pull from it, and pod selectors cannot match node traffic.
+  registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
 - CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
   the rootless `buildkitd` in `forgejo-runner`, using
   `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
+  They push to the in-cluster registry as `10.43.200.10:5000/<app>:<tag>`, over plain HTTP.
+- Container images: Deployments use `localhost:5000/<app>:<tag>`. containerd pulls on the node,
+  where cluster DNS doesn't resolve and only HTTPS with a trusted certificate is accepted, except
+  from `localhost`, which it accepts over plain HTTP with no node config. `registry-proxy` (a
+  DaemonSet in `apps/registry`, official `haproxy` image) runs on every node and forwards
+  `127.0.0.1:5000` to the registry (official `registry` image, no authentication, so no pull
+  secrets). Its `hostPort` is bound to `127.0.0.1`; never drop that `hostIP`, or the registry is
+  open to the LAN. Don't add node config (`registries.yaml`); manifests must work on a managed
+  cluster too. Forgejo's container registry is not used: its token URL comes from Forgejo's
+  `ROOT_URL`, which nodes can't reach.
 - When a ConfigMap mounted by a Deployment changes, set that Deployment's `checksum/config`
   annotation to the output of `shasum -a 256 <configmap file>` so its pods restart.
 - Prefer plain manifests. When a Helm chart is needed, follow `infra/argocd/application.yaml`:
