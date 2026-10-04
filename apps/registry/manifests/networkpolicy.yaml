@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    # registry-proxy relays the nodes' pulls; buildkitd pushes from CI. Each node reaches its own
+    # proxy through the hostPort, which arrives as local-node traffic and needs no rule here.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: registry-proxy
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: forgejo-runner
+          podSelector:
+            matchLabels:
+              app: buildkitd
+      ports:
+        - protocol: TCP
+          port: 5000

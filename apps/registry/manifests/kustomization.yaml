@@ -7,3 +7,4 @@ resources:
   - service.yaml
   - configmap-proxy.yaml
   - daemonset-proxy.yaml
+  - networkpolicy.yaml
