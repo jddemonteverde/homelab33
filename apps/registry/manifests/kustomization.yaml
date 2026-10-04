@@ -5,3 +5,5 @@ resources:
   - pvc.yaml
   - deployment.yaml
   - service.yaml
+  - configmap-proxy.yaml
+  - daemonset-proxy.yaml

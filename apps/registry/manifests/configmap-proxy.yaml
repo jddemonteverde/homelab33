@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-proxy
+  namespace: registry
+data:
+  haproxy.cfg: |
+    global
+      maxconn 256
+
+    defaults
+      mode tcp
+      timeout connect 5s
+      timeout client 5m
+      timeout server 5m
+
+    frontend registry
+      bind :5000
+      default_backend registry
+
+    backend registry
+      server registry registry.registry.svc.cluster.local:5000

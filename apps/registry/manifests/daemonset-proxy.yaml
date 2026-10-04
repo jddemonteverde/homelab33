@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: registry-proxy
+  namespace: registry
+  labels:
+    app: registry-proxy
+spec:
+  selector:
+    matchLabels:
+      app: registry-proxy
+  template:
+    metadata:
+      annotations:
+        checksum/config: 0736cdf9364ae530125b564dead4a0ef9a24d10209d2267d56f6f3d21a0ae851
+      labels:
+        app: registry-proxy
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 99
+        runAsGroup: 99
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: haproxy
+          image: docker.io/library/haproxy:3.4.6-alpine
+          ports:
+            # containerd pulls localhost:5000/<app>:<tag> over plain HTTP with no node config.
+            # hostIP keeps the port on each node's loopback; without it the unauthenticated
+            # registry would be open to the LAN.
+            - name: registry
+              containerPort: 5000
+              hostPort: 5000
+              hostIP: 127.0.0.1
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: config
+              mountPath: /usr/local/etc/haproxy
+              readOnly: true
+          # Ready only when the registry answers through the proxy.
+          readinessProbe:
+            httpGet:
+              path: /v2/
+              port: registry
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: registry
+            periodSeconds: 20
+      volumes:
+        - name: config
+          configMap:
+            name: registry-proxy

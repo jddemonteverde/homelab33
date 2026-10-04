@@ -7,8 +7,8 @@ metadata:
     app: registry
 spec:
   type: ClusterIP
-  # Pinned: image references and each node's registries.yaml use this address,
-  # because containerd pulls from the host and cannot resolve cluster DNS.
+  # Pinned: CI pushes here (buildkitd's config and the app workflows use this address).
+  # Nodes pull through registry-proxy on localhost:5000 instead; see daemonset-proxy.yaml.
   clusterIP: 10.43.200.10
   selector:
     app: registry
