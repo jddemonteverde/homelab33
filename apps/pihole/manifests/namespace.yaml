@@ -1,0 +1,7 @@
+# No Pod Security enforcement: baseline forbids the hostPort that serves LAN DNS.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pihole
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false

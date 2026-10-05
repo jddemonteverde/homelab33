@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: pihole
+  labels:
+    app: pihole
+spec:
+  replicas: 1
+  # One hostPort and one SQLite volume. Recreate also removes the old pod's hostPort rule before
+  # the new image is pulled, so the node's own lookups don't depend on a Pi-hole that is gone.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      automountServiceAccountToken: false
+      # The router hands out this node's LAN address as the DNS server.
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "true"
+      securityContext:
+        # The image's start script runs as root, then starts FTL as the pihole user (uid 1000).
+        # allowPrivilegeEscalation: false keeps FTL from gaining its file capabilities, so it
+        # runs with none and binds port 53 thanks to this sysctl instead.
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "53"
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pihole
+          image: docker.io/pihole/pihole:2026.09.0
+          env:
+            - name: TZ
+              value: Asia/Manila
+            - name: FTLCONF_dns_upstreams
+              value: 9.9.9.9;149.112.112.112
+            # Queries arrive from LAN addresses, which are not on the pod's own subnet.
+            - name: FTLCONF_dns_listeningMode
+              value: ALL
+            - name: FTLCONF_webserver_port
+              value: "8080"
+            # Pi-hole redirects / to /admin/ only for requests to this host.
+            - name: FTLCONF_webserver_domain
+              value: pihole.lab.jddemonteverde.com
+            - name: FTLCONF_ntp_ipv4_active
+              value: "false"
+            - name: FTLCONF_ntp_ipv6_active
+              value: "false"
+            - name: FTLCONF_ntp_sync_active
+              value: "false"
+            - name: FTLCONF_misc_nice
+              value: "0"
+            - name: FTLCONF_webserver_api_password
+              valueFrom:
+                secretKeyRef:
+                  name: pihole-admin
+                  key: FTLCONF_webserver_api_password
+          ports:
+            # The only LAN listener in the cluster: every device at home uses this as its DNS
+            # server. Never forward port 53 to it from the internet.
+            - name: dns-udp
+              containerPort: 53
+              hostPort: 53
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 53
+              hostPort: 53
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              # Only what the start script and its cron jobs use: setcap, chown, switching to
+              # the pihole user, and signalling FTL.
+              add:
+                - CHOWN
+                - DAC_OVERRIDE
+                - FOWNER
+                - KILL
+                - SETFCAP
+                - SETGID
+                - SETUID
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /etc/pihole
+          # The first start downloads the blocklists before FTL answers.
+          startupProbe:
+            exec:
+              command: [dig, +short, +norecurse, +retry=0, "@127.0.0.1", pi.hole]
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: [dig, +short, +norecurse, +retry=0, "@127.0.0.1", pi.hole]
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /admin/login
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pihole-data
