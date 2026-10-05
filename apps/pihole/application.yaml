@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: pihole
   namespace: argocd
+  annotations:
+    # Server-side diff and apply key container ports by port and protocol. The client-side merge
+    # keys them by port only, so the UDP and TCP entries for port 53 collapse and the TCP
+    # entry's hostIP is silently dropped.
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -18,3 +23,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
