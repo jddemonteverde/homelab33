@@ -10,3 +10,6 @@ configMapGenerator:
   - name: dashboard-homelab-nodes
     files:
       - homelab-nodes.json
+  - name: dashboard-top-consumers
+    files:
+      - top-consumers.json
