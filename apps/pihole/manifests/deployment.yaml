@@ -16,6 +16,10 @@ spec:
       app: pihole
   template:
     metadata:
+      annotations:
+        # Pi-hole reads its admin password only at startup: set this to
+        # `shasum -a 256 secrets/pihole-admin.yaml` whenever that file is re-sealed.
+        checksum/secret: 50ec39cd47f3030df7b89f3d3d69485be309753ae5ec7afa02bdcaeb82e6114c
       labels:
         app: pihole
     spec:
