@@ -46,10 +46,12 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
   `pihole` also admits DNS (port 53) from the LAN.
 - LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the cluster's only LAN
-  listener. Its pod publishes `hostPort` 53 (UDP and TCP) and is pinned to the control-plane
-  node, whose LAN address the router hands out as the DNS server, so never drop its
-  `nodeSelector`. The official image's start script runs as root and drops FTL to an
-  unprivileged user; the container keeps only the capabilities that script needs,
+  listener. Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
+  address (`hostIP`), which the router hands out as the DNS server, so never drop its
+  `nodeSelector`. Keep the `hostIP`: without it the rule also captures the node's own resolver
+  (`127.0.0.53`), and the node can't resolve names, not even to pull Pi-hole's image. The
+  official image's start script runs as root and drops FTL to an unprivileged user; the
+  container keeps only the capabilities that script needs,
   `allowPrivilegeEscalation: false` keeps FTL at none, and the pod sysctl
   `net.ipv4.ip_unprivileged_port_start` lets it bind port 53. Like `registry`, its namespace
   can't enforce the `baseline` Pod Security Standard, which forbids `hostPort`. Its admin UI is
@@ -100,7 +102,8 @@ Never commit:
 - Details that identify the home network beyond what is already here: public IPs, MAC
   addresses, router or ISP details, or domains other than the ones below. `*.homelab.local` and
   `*.lab.jddemonteverde.com` hostnames are fine; the latter appear in public certificate logs
-  anyway.
+  anyway. The one LAN address allowed is the control-plane node's, in `apps/pihole` (Pi-hole's
+  `hostIP`); don't add other LAN addresses.
 
 Measures in place:
 

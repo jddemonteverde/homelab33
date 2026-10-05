@@ -7,8 +7,7 @@ metadata:
     app: pihole
 spec:
   replicas: 1
-  # One hostPort and one SQLite volume. Recreate also removes the old pod's hostPort rule before
-  # the new image is pulled, so the node's own lookups don't depend on a Pi-hole that is gone.
+  # One hostPort and one SQLite volume.
   strategy:
     type: Recreate
   selector:
@@ -67,14 +66,18 @@ spec:
                   key: FTLCONF_webserver_api_password
           ports:
             # The only LAN listener in the cluster: every device at home uses this as its DNS
-            # server. Never forward port 53 to it from the internet.
+            # server. Never forward port 53 to it from the internet. hostIP is the node's LAN
+            # address: without it the hostPort rule also captures the node's own resolver
+            # (127.0.0.53), so the node can't resolve names, not even to pull this image.
             - name: dns-udp
               containerPort: 53
               hostPort: 53
+              hostIP: 192.168.1.200
               protocol: UDP
             - name: dns-tcp
               containerPort: 53
               hostPort: 53
+              hostIP: 192.168.1.200
               protocol: TCP
             - name: http
               containerPort: 8080
