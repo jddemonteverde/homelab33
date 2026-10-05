@@ -68,7 +68,10 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   `kubeRBACProxy` off. The namespace can't enforce the `baseline` Pod Security Standard, which
   forbids host namespaces and `hostPath`. Prometheus picks up `ServiceMonitor`, `PodMonitor` and
   `PrometheusRule` objects from every namespace; to scrape an app, add one to its manifests and
-  let the `monitoring` namespace reach its metrics port in its NetworkPolicy.
+  let the `monitoring` namespace reach its metrics port in its NetworkPolicy. Dashboards are JSON
+  files in `infra/monitoring/manifests/dashboards/`, one per dashboard, each listed in that
+  directory's `configMapGenerator`. Export them from Grafana with "Export for sharing externally"
+  off. Grafana can't save changes to them, so edits go through git.
 - CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
   the rootless `buildkitd` in `forgejo-runner`, using
   `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
