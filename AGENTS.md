@@ -12,7 +12,7 @@ committed byte is public.
 | Path | Purpose |
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
-| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
+| `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, Traefik settings, and monitoring (Prometheus and Grafana from kube-prometheus-stack). Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
 | `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
@@ -38,15 +38,18 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   `node-role.kubernetes.io/control-plane` `DoesNotExist`). New components follow the same split.
   The Tailscale proxy (`infra/tailscale-proxy`) also runs on the control plane, because it holds
   the cluster's tailnet identity. It runs unprivileged (userspace networking) in a namespace that
-  enforces the `restricted` Pod Security Standard; keep it that way.
+  enforces the `restricted` Pod Security Standard; keep it that way. The monitoring stack
+  (`infra/monitoring`) runs there too, since its operator can read every Secret; only
+  node-exporter, a DaemonSet, runs on every node.
 - NetworkPolicies: each app namespace has a policy that selects all its pods and allows ingress
   only from Traefik on the app's port, plus any source it names. `forgejo-runner` also denies
   egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `tailscale` accepts nothing
   and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
   registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
-  `pihole` also admits DNS (port 53) from the LAN.
+  `pihole` also admits DNS (port 53) from the LAN. `monitoring` admits Traefik on Grafana's port
+  and its own pods.
 - LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the cluster's only LAN
-  listener. Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
+  listener open to any device (node-exporter's requires a token; see Monitoring). Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
   address (`hostIP`), which the router hands out as the DNS server, so never drop its
   `nodeSelector`. Keep the `hostIP`: without it the rule also captures the node's own resolver
   (`127.0.0.53`), and the node can't resolve names, not even to pull Pi-hole's image. The
@@ -56,6 +59,16 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   `net.ipv4.ip_unprivileged_port_start` lets it bind port 53. Like `registry`, its namespace
   can't enforce the `baseline` Pod Security Standard, which forbids `hostPort`. Its admin UI is
   an ordinary tailnet-only Ingress.
+- Monitoring: `infra/monitoring` installs kube-prometheus-stack, with Alertmanager off. Grafana is
+  served at `grafana.lab.jddemonteverde.com`. Prometheus has no authentication, so it has no
+  Ingress; Grafana queries it in-cluster. node-exporter uses `hostNetwork` to report the nodes'
+  own interfaces, so its port 9100 (and kube-rbac-proxy's `/healthz` on 8888) is open on every
+  node's LAN address. node-exporter itself listens on `127.0.0.1`; kube-rbac-proxy holds 9100 and
+  answers only HTTPS requests carrying a token the Kubernetes API authorizes. Never turn
+  `kubeRBACProxy` off. The namespace can't enforce the `baseline` Pod Security Standard, which
+  forbids host namespaces and `hostPath`. Prometheus picks up `ServiceMonitor`, `PodMonitor` and
+  `PrometheusRule` objects from every namespace; to scrape an app, add one to its manifests and
+  let the `monitoring` namespace reach its metrics port in its NetworkPolicy.
 - CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
   the rootless `buildkitd` in `forgejo-runner`, using
   `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
@@ -117,8 +130,10 @@ Measures in place:
   the tailnet policy grants only to tailnet members, on ports 80 and 443. It joined with a
   single-use key, so no reusable Tailscale credential is stored anywhere. Nothing is exposed to
   the internet; never enable Tailscale Funnel.
-- The one LAN listener is Pi-hole's DNS on port 53 of the control-plane node. It answers any LAN
-  device; never forward port 53 to it from the internet.
+- The one LAN listener open to any device is Pi-hole's DNS on port 53 of the control-plane node;
+  never forward port 53 to it from the internet. node-exporter's port 9100 on every node also
+  faces the LAN, but kube-rbac-proxy answers only requests carrying a token the Kubernetes API
+  authorizes.
 - CI is contained: jobs have no Docker socket, images build on rootless BuildKit, and CI pods
   never share a node with the controllers that can read every Secret.
 - App namespaces accept traffic only from Traefik and the sources their NetworkPolicy names.
