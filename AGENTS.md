@@ -13,7 +13,7 @@ committed byte is public.
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
 | `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, and Traefik settings. Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
-| `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry) as plain Kustomize manifests under `apps/<app>/manifests/`. |
+| `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
 any part of the tree can be built with `kubectl kustomize <dir>`.
@@ -44,6 +44,16 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `tailscale` accepts nothing
   and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
   registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
+  `pihole` also admits DNS (port 53) from the LAN.
+- LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the cluster's only LAN
+  listener. Its pod publishes `hostPort` 53 (UDP and TCP) and is pinned to the control-plane
+  node, whose LAN address the router hands out as the DNS server, so never drop its
+  `nodeSelector`. The official image's start script runs as root and drops FTL to an
+  unprivileged user; the container keeps only the capabilities that script needs,
+  `allowPrivilegeEscalation: false` keeps FTL at none, and the pod sysctl
+  `net.ipv4.ip_unprivileged_port_start` lets it bind port 53. Like `registry`, its namespace
+  can't enforce the `baseline` Pod Security Standard, which forbids `hostPort`. Its admin UI is
+  an ordinary tailnet-only Ingress.
 - CI builds: jobs get no Docker socket (`docker_host: "-"`). Workflows build and push images on
   the rootless `buildkitd` in `forgejo-runner`, using
   `docker buildx create --driver remote tcp://buildkitd.forgejo-runner.svc.cluster.local:1234`.
@@ -104,6 +114,8 @@ Measures in place:
   the tailnet policy grants only to tailnet members, on ports 80 and 443. It joined with a
   single-use key, so no reusable Tailscale credential is stored anywhere. Nothing is exposed to
   the internet; never enable Tailscale Funnel.
+- The one LAN listener is Pi-hole's DNS on port 53 of the control-plane node. It answers any LAN
+  device; never forward port 53 to it from the internet.
 - CI is contained: jobs have no Docker socket, images build on rootless BuildKit, and CI pods
   never share a node with the controllers that can read every Secret.
 - App namespaces accept traffic only from Traefik and the sources their NetworkPolicy names.
