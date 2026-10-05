@@ -113,6 +113,10 @@ prometheus-node-exporter:
       bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
       tlsConfig:
         insecureSkipVerify: true
+      # Name each series by its node, as kube-state-metrics does, not only by IP and port.
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
 
 grafana:
   nodeSelector:
@@ -130,6 +134,9 @@ grafana:
   grafana.ini:
     server:
       root_url: https://grafana.lab.jddemonteverde.com
+    # Where the sidecar writes manifests/dashboards/homelab-nodes.json.
+    dashboards:
+      default_home_dashboard_path: /tmp/dashboards/homelab-nodes.json
   ingress:
     enabled: true
     ingressClassName: traefik
