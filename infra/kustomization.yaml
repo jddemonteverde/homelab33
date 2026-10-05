@@ -7,3 +7,4 @@ resources:
   - coredns-custom
   - traefik
   - tailscale-proxy
+  - monitoring

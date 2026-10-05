@@ -1,0 +1,154 @@
+fullnameOverride: monitoring
+
+# k3s runs these inside its own process, listening only on localhost, so Prometheus can't scrape
+# them; their targets would only ever be down.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+# No receivers yet. Alerts still show in Prometheus and in Grafana.
+alertmanager:
+  enabled: false
+defaultRules:
+  rules:
+    alertmanager: false
+  disabled:
+    PrometheusNotConnectedToAlertmanagers: true
+
+prometheusOperator:
+  # Off the CI node; see "Node placement" in AGENTS.md. The operator can read every Secret.
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
+  # The webhook's certificate is made and patched in by hook Jobs, which Argo CD sees as drift.
+  # TLS on the operator's own port uses that same certificate.
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+    retention: 30d
+    retentionSize: 15GB
+    # Pick up monitors and rules from every namespace, not only those labelled for this release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+
+kube-state-metrics:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+# node-exporter uses the host's network namespace to report the nodes' own interfaces, so its port
+# is open on every node's LAN address. kube-rbac-proxy holds that port and only answers HTTPS
+# requests carrying a token the Kubernetes API authorizes; node-exporter itself listens on
+# 127.0.0.1.
+prometheus-node-exporter:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  kubeRBACProxy:
+    enabled: true
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+    resources:
+      requests:
+        cpu: 5m
+        memory: 16Mi
+      limits:
+        memory: 64Mi
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+  prometheus:
+    monitor:
+      scheme: https
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        insecureSkipVerify: true
+
+grafana:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
+  admin:
+    existingSecret: grafana-admin
+  # The sidecars read dashboards and datasources from this namespace only, so Grafana needs no
+  # access to ConfigMaps or Secrets elsewhere.
+  rbac:
+    namespaced: true
+  sidecar:
+    dashboards:
+      searchNamespace: null
+  defaultDashboardsTimezone: browser
+  grafana.ini:
+    server:
+      root_url: https://grafana.lab.jddemonteverde.com
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.lab.jddemonteverde.com
+  persistence:
+    enabled: true
+    type: pvc
+    size: 2Gi
+  deploymentStrategy:
+    type: Recreate
+  # Its only job is a root chown; local-path volumes are already writable by Grafana's user.
+  initChownData:
+    enabled: false
+  testFramework:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi

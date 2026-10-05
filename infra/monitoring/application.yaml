@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 91.9.0
+      helm:
+        releaseName: monitoring
+        valueFiles:
+          - $values/infra/monitoring/values.yaml
+    - repoURL: https://github.com/jddemonteverde/homelab33.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/jddemonteverde/homelab33.git
+      targetRevision: main
+      path: infra/monitoring/secrets
+    - repoURL: https://github.com/jddemonteverde/homelab33.git
+      targetRevision: main
+      path: infra/monitoring/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The chart's CRDs exceed the size limit of the annotation that client-side apply writes.
+      - ServerSideApply=true
