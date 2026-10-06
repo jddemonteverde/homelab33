@@ -82,7 +82,14 @@
     {
       "title": "Homelab Nodes",
       "type": "link",
-      "url": "/d/homelab-nodes"
+      "url": "/d/homelab-nodes",
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "",
+      "asDropdown": false,
+      "tags": []
     }
   ],
   "panels": [
