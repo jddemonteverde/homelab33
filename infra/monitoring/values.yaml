@@ -154,9 +154,10 @@ grafana:
     enabled: false
   testFramework:
     enabled: false
+  # Grafana 13 reached 512Mi in normal use and was OOMKilled.
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 256Mi
     limits:
-      memory: 512Mi
+      memory: 1Gi
