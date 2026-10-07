@@ -26,6 +26,7 @@ CI, which runs code from workflows, is never allowed there.
 | Forgejo Actions runner | CI for Forgejo, building images on rootless BuildKit | — |
 | Registry | In-cluster container registry for images built by CI | — (cluster only) |
 | finance-app | A personal finance app, built and deployed from Forgejo | `finance.lab.jddemonteverde.com` |
+| portfolio | My portfolio site and blog, built and deployed from Forgejo | `portfolio.lab.jddemonteverde.com` |
 | [Pi-hole](https://pi-hole.net) | Network-wide DNS and ad blocking for the home LAN | `pihole.lab.jddemonteverde.com` |
 | Grafana + Prometheus | Cluster and node monitoring (kube-prometheus-stack) | `grafana.lab.jddemonteverde.com` |
 
@@ -42,7 +43,7 @@ tailnet. Nothing is exposed to the internet.
                                        │  *.lab.jddemonteverde.com
                                        │  (Let's Encrypt wildcard cert)
                                        ▼
-                         Forgejo · finance-app · Grafana · Pi-hole UI
+                         Forgejo · finance-app · portfolio · Grafana · Pi-hole UI
 
  git push ──► Forgejo ──► GitHub mirror ──► Argo CD ──► cluster
                 │
@@ -81,7 +82,7 @@ infra/       Cluster components
   coredns-custom/  In-cluster DNS rewrites for lab hostnames
   monitoring/      Prometheus and Grafana
 apps/        Workloads, as plain Kustomize manifests
-  forgejo/  forgejo-runner/  registry/  finance-app/  pihole/
+  forgejo/  forgejo-runner/  registry/  finance-app/  pihole/  portfolio/
 ```
 
 Every directory is a Kustomize base, so any part of the tree can be rendered locally:
