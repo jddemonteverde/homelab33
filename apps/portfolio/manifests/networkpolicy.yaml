@@ -1,4 +1,4 @@
-# The site makes no outbound calls until a lead webhook is configured, so egress is closed entirely.
+# The site makes no outbound calls, so egress is closed entirely.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
