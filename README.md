@@ -48,7 +48,22 @@ devices. So I can open them from my phone or laptop wherever I am, but nobody el
 If you want to follow along, start with [Forgejo](apps/forgejo/). Each page links to the next one
 at the bottom.
 
-## 4. How the repository is laid out
+## 4. How a change goes live
+
+Shipping a new version of one of my apps takes two steps.
+
+First, I push a version tag to the app's repository on Forgejo. Forgejo runs the CI pipeline,
+which builds the Docker image and stores it in my own registry, all inside the cluster.
+
+![Build & push an image](docs/diagrams/homelab33.1-build.svg)
+
+Then I bump the image tag in this repository, also on Forgejo. Forgejo mirrors it to GitHub,
+Argo CD picks up the change from there and updates the cluster, and the new pod pulls the image
+from the registry.
+
+![GitOps deploy](docs/diagrams/homelab33.2-deploy.svg)
+
+## 5. How the repository is laid out
 
 ```text
 bootstrap/   Two starting Argo CD apps. I applied these once by hand; they pull in everything else
@@ -58,7 +73,7 @@ apps/        My apps, one folder each
 
 If you want to see how the pieces connect, [infra/](infra/) explains it.
 
-## 5. A few things I made sure of
+## 6. A few things I made sure of
 
 - Every app uses HTTPS with a Let's Encrypt certificate that renews by itself.
 - Passwords and keys are stored here only in encrypted form (Sealed Secrets), so this repo can

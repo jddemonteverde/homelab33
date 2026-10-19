@@ -1,0 +1,63 @@
+{
+  "file": "homelab33.drawio",
+  "theme": "navy",
+  "pages": [
+    {
+      "name": "1 Build",
+      "title": "Build & push an image",
+      "actor": {"id": "me", "label": "Me", "row": 1},
+      "frame": {"label": "Kubernetes (k3s) · homelab33", "icon": "k3s"},
+      "zones": [
+        {"id": "desktop", "label": "Desktop · control plane", "row": 1, "cols": [0, 1]},
+        {"id": "laptop", "label": "Laptop · worker", "row": 1, "cols": [2, 5]}
+      ],
+      "nodes": [
+        {"id": "tailscale", "label": "Tailscale", "icon": "tailscale", "zone": "desktop", "col": 0},
+        {"id": "traefik", "label": "Traefik", "icon": "traefik", "zone": "desktop", "col": 1},
+        {"id": "forgejo", "label": "Forgejo", "icon": "forgejo", "zone": "laptop", "col": 2},
+        {"id": "runner", "label": "Forgejo Runner", "icon": "forgejo", "zone": "laptop", "col": 3},
+        {"id": "buildkit", "label": "BuildKit", "sub": "Docker build", "icon": "docker", "zone": "laptop", "col": 4},
+        {"id": "registry", "label": "Registry", "sub": "Docker images", "icon": "registry", "zone": "laptop", "col": 5}
+      ],
+      "edges": [
+        {"from": "me", "to": "tailscale", "label": "① push tag · tailnet"},
+        {"from": "tailscale", "to": "traefik"},
+        {"from": "traefik", "to": "forgejo"},
+        {"from": "forgejo", "to": "runner", "label": "② run CI"},
+        {"from": "runner", "to": "buildkit", "label": "③ build"},
+        {"from": "buildkit", "to": "registry", "label": "④ push\nDocker image"}
+      ]
+    },
+    {
+      "name": "2 Deploy",
+      "title": "GitOps deploy",
+      "actor": {"id": "me", "label": "Me", "row": 1},
+      "frame": {"label": "Kubernetes (k3s) · homelab33", "icon": "k3s"},
+      "zones": [
+        {"id": "internet", "label": "Internet", "row": 0, "cols": [2, 2]},
+        {"id": "desktop", "label": "Desktop · control plane", "row": 1, "cols": [0, 5]},
+        {"id": "laptop", "label": "Laptop · worker", "row": 2, "cols": [0, 5]}
+      ],
+      "nodes": [
+        {"id": "github", "label": "GitHub", "sub": "homelab33", "icon": "github", "zone": "internet", "col": 2, "label_side": "left"},
+        {"id": "tailscale", "label": "Tailscale", "icon": "tailscale", "zone": "desktop", "col": 0},
+        {"id": "traefik", "label": "Traefik", "icon": "traefik", "zone": "desktop", "col": 1, "label_side": "right"},
+        {"id": "argocd", "label": "Argo CD", "icon": "argocd", "zone": "desktop", "col": 3, "label_side": "right"},
+        {"id": "forgejo", "label": "Forgejo", "sub": "homelab33", "icon": "forgejo", "zone": "laptop", "col": 2},
+        {"id": "app", "label": "App", "sub": "Kubernetes Pod", "icon": "k8s:pod", "zone": "laptop", "col": 3},
+        {"id": "proxy", "label": "registry-proxy", "sub": "Kubernetes DaemonSet", "icon": "k8s:ds", "zone": "laptop", "col": 4},
+        {"id": "registry", "label": "Registry", "sub": "Docker images", "icon": "registry", "zone": "laptop", "col": 5}
+      ],
+      "edges": [
+        {"from": "me", "to": "tailscale", "label": "① bump tag · tailnet"},
+        {"from": "tailscale", "to": "traefik"},
+        {"from": "traefik", "to": "forgejo"},
+        {"from": "forgejo", "to": "github", "label": "② push mirror"},
+        {"from": "github", "to": "argocd", "label": "③ fetch", "exit": "right", "entry": "top"},
+        {"from": "argocd", "to": "app", "label": "④ sync to Kubernetes"},
+        {"from": "registry", "to": "proxy"},
+        {"from": "proxy", "to": "app", "label": "⑤ pull\nDocker image"}
+      ]
+    }
+  ]
+}
