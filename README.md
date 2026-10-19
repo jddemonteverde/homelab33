@@ -1,7 +1,7 @@
 # homelab33
 
 A GitOps-managed Kubernetes cluster on two recycled machines. It runs my own Git, CI, image
-registry and apps, and none of it is open to the internet.
+registry and apps. Only my portfolio is open to the internet, through a Cloudflare Tunnel.
 
 This is my homelab. It runs on an old desktop PC and an old laptop at home, using
 [k3s](https://k3s.io), a lightweight, certified Kubernetes distribution.
@@ -15,9 +15,10 @@ working is called GitOps.
 
 - **A tag is all I push to ship an app.** CI builds the image on rootless BuildKit, commits the new
   tag here, and Argo CD rolls it out. [How a change goes live](#4-how-a-change-goes-live)
-- **Nothing is open to the internet.** Apps are reachable only from my tailnet, through an
-  unprivileged Tailscale proxy, and served with a real wildcard certificate.
-  [infra](infra/)
+- **No port is open on my router.** Apps are reachable only from my tailnet, through an
+  unprivileged Tailscale proxy, and served with a real wildcard certificate. The one public site,
+  my portfolio, goes out through a Cloudflare Tunnel that can reach nothing else.
+  [infra](infra/) · [Portfolio](apps/portfolio/)
 - **CI can't take over the cluster.** Jobs get no Docker socket, run only on the laptop, and can
   reach only what they need. Everything that can read secrets runs on the other machine.
   [Forgejo runner](apps/forgejo-runner/)
@@ -59,9 +60,15 @@ them, and a UPS sits next to them.
 
 ## 2. How I reach my apps
 
-None of my apps are open to the internet. They are only reachable through my
-[Tailscale](https://tailscale.com) network (a tailnet), a private network made up of my own
-devices. So I can open them from my phone or laptop wherever I am, but nobody else can.
+My apps are only reachable through my [Tailscale](https://tailscale.com) network (a tailnet), a
+private network made up of my own devices. So I can open them from my phone or laptop wherever I
+am, but nobody else can.
+
+The exception is my portfolio, which is meant to be public. A
+[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+in its namespace connects out to Cloudflare and hands visitors' requests to the site, so I don't
+open any port at home. The tunnel can reach the portfolio and nothing else.
+[How it's locked down](apps/portfolio/)
 
 ## 3. What's running
 

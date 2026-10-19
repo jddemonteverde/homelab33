@@ -48,7 +48,8 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
   registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
   `pihole` also admits DNS (port 53) from the LAN. `monitoring` admits Traefik on Grafana's port
-  and its own pods.
+  and its own pods. `portfolio` also admits its `cloudflared` pods, whose own policy lets them
+  reach only DNS, the site, and the internet on port 7844.
 - LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the cluster's only LAN
   listener open to any device (node-exporter's requires a token; see Monitoring). Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
   address (`hostIP`), which the router hands out as the DNS server, so never drop its
@@ -124,8 +125,8 @@ Never commit:
 - Details that identify the home network beyond what is already here: public IPs, MAC
   addresses, router or ISP details, or domains other than the ones below. `*.homelab.local` and
   `*.lab.jddemonteverde.com` hostnames are fine; the latter appear in public certificate logs
-  anyway. The one LAN address allowed is the control-plane node's, in `apps/pihole` (Pi-hole's
-  `hostIP`); don't add other LAN addresses.
+  anyway. So is `jddemonteverde.com`, the public portfolio. The one LAN address allowed is the
+  control-plane node's, in `apps/pihole` (Pi-hole's `hostIP`); don't add other LAN addresses.
 
 Measures in place:
 
@@ -137,8 +138,13 @@ Measures in place:
   listener; it is reachable only from the tailnet, through the Tailscale proxy (tagged
   `tag:k8s-ingress`), which
   the tailnet policy grants only to tailnet members, on ports 80 and 443. It joined with a
-  single-use key, so no reusable Tailscale credential is stored anywhere. Nothing is exposed to
-  the internet; never enable Tailscale Funnel.
+  single-use key, so no reusable Tailscale credential is stored anywhere. Never enable Tailscale
+  Funnel.
+- The one service exposed to the internet is the portfolio, at `jddemonteverde.com`, through the
+  Cloudflare Tunnel in `apps/portfolio` (`cloudflared`, token sealed in `secrets/`). It connects
+  out only; its route is set in Cloudflare's dashboard and points straight at the portfolio
+  Service, never at Traefik, so no other app can be reached through it. Exposing anything else
+  through it, or adding another tunnel, widens exposure (see the rules below).
 - The one LAN listener open to any device is Pi-hole's DNS on port 53 of the control-plane node;
   never forward port 53 to it from the internet. node-exporter's port 9100 on every node also
   faces the LAN, but kube-rbac-proxy answers only requests carrying a token the Kubernetes API
