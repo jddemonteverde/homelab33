@@ -1,0 +1,19 @@
+# The portfolio faces the internet and its image bumps are committed by CI, so Argo CD applies its
+# manifests only into its own namespace. The one cluster-scoped object it may create is that Namespace.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: portfolio
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: The portfolio site
+  sourceRepos:
+    - https://github.com/jddemonteverde/homelab33.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: portfolio
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

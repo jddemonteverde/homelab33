@@ -18,12 +18,14 @@ locked down as if it already did.
 
 - The namespace enforces the `restricted` Pod Security Standard, so it refuses any pod that isn't
   unprivileged.
-- It runs as a non-root user with no capabilities, and never on the desktop, where the parts that
-  can read every secret live.
+- It runs as a non-root user with no capabilities and no Kubernetes API token, and never on the
+  desktop, where the parts that can read every secret live.
+- Its root filesystem is read-only. The only writable path is the small scratch folder Next wants
+  for its cache.
 - Its NetworkPolicy only lets in Traefik, and blocks all outgoing traffic: the site makes no
   outbound calls.
-- `pvc.yaml` is an old volume from a contact form the site no longer has. Nothing mounts it. It's
-  marked so Argo CD never deletes it.
+- It has its own Argo CD project, which deploys only into the `portfolio` namespace and creates
+  nothing cluster-wide except that namespace. CI commits here, so a bad commit stays inside it.
 
 ## Releasing a new version
 
@@ -35,13 +37,14 @@ locked down as if it already did.
 ## Files
 
 ```text
+appproject.yaml        Argo CD project: the portfolio namespace only
+application.yaml       Argo CD Application
 manifests/
   namespace.yaml       Namespace, restricted Pod Security
   deployment.yaml      The site
   service.yaml         Web port, for Traefik
   ingress.yaml         HTTPS route, tailnet only
   networkpolicy.yaml   Traefik in, nothing out
-  pvc.yaml             Old, unused volume, kept on purpose
 ```
 
 ---
