@@ -28,10 +28,10 @@ jobs:
         run: |
           set -eu
           cd "$(mktemp -d)"
-          curl -fsSLo kubectl "https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl"
+          curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 -o kubectl "https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl"
           echo "$KUBECTL_SHA256  kubectl" | sha256sum -c -
           install -m 0755 kubectl /usr/local/bin/kubectl
-          curl -fsSLO "https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION/kubeconform-linux-amd64.tar.gz"
+          curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 -O "https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION/kubeconform-linux-amd64.tar.gz"
           echo "$KUBECONFORM_SHA256  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
           tar -xzf kubeconform-linux-amd64.tar.gz kubeconform
           install -m 0755 kubeconform /usr/local/bin/kubeconform
@@ -58,7 +58,7 @@ jobs:
           set -eu
           cd "$(mktemp -d)"
           archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/$archive"
+          curl -fsSL --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 -O "https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/$archive"
           echo "$GITLEAKS_SHA256  $archive" | sha256sum -c -
           tar -xzf "$archive" gitleaks
           install -m 0755 gitleaks /usr/local/bin/gitleaks
