@@ -14,9 +14,11 @@ committed byte is public.
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
 | `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, Traefik settings, and monitoring (Prometheus and Grafana from kube-prometheus-stack). Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
 | `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
+| `docs/` | Plain Markdown, outside the Kustomize tree. `security-hardening.md` holds the latest security review and the hardening plan, including the steps done by hand on the nodes. |
 
-Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
-any part of the tree can be built with `kubectl kustomize <dir>`.
+Each directory under `bootstrap/`, `infra/` and `apps/` is a Kustomize base whose
+`kustomization.yaml` explicitly lists its children, so any part of the tree can be built with
+`kubectl kustomize <dir>`.
 
 ## Conventions
 
@@ -155,6 +157,9 @@ Rules for agents:
 
 Optional hardening not yet added: a `.gitignore` for `.env*`, `*.pem`, `*.key`, `kubeconfig*`,
 and a gitleaks pre-commit hook or GitHub Action.
+
+Open hardening work, cluster and node level, is tracked in `docs/security-hardening.md`. When a
+step from it is done, tick its box there in the same change.
 
 ## Secrets: Sealed Secrets
 
