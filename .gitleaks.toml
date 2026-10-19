@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SealedSecret ciphertext, which only the in-cluster controller can decrypt"
+paths = ['''(^|/)secrets/[^/]+\.yaml$''']
+
+[[allowlists]]
+description = "checksum/* annotations: sha256 of a ConfigMap or SealedSecret file"
+regexTarget = "line"
+regexes = ['''checksum/[a-z]+: [0-9a-f]{64}''']

@@ -14,6 +14,7 @@ committed byte is public.
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
 | `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, Traefik settings, and monitoring (Prometheus and Grafana from kube-prometheus-stack). Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
 | `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
+| `.forgejo/` | CI for this repository: the `validate` workflow and the script it runs. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so
 any part of the tree can be built with `kubectl kustomize <dir>`.
@@ -99,8 +100,13 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
 - Traefik serves the Let's Encrypt wildcard certificate for `*.lab.jddemonteverde.com` as its
   default (the `TLSStore` named `default` in `infra/traefik`), so an Ingress under that name
   needs no `tls:` section.
-- Before committing, run `kubectl kustomize <dir>` for every directory you touched and confirm it
-  builds.
+- Before committing, run `./.forgejo/scripts/validate-manifests.sh` (needs `kubectl` and
+  `kubeconform`) and confirm it passes. It builds every Kustomize directory, validates the output
+  against pinned Kubernetes and CRD schemas, and rejects plaintext Secrets and unpinned images.
+  CI (`.forgejo/workflows/validate.yml`) runs the same script, plus gitleaks over the full
+  history (`.gitleaks.toml`), on every push to `main` and every pull request. It flags a bad
+  commit but doesn't block it: `main` has no branch protection and app CI pushes image bumps
+  straight to it.
 
 ## Security
 
@@ -153,8 +159,8 @@ Rules for agents:
 - If a secret is committed by accident, tell the owner immediately so it can be rotated, then
   remove it.
 
-`.gitignore` excludes `.env*`, `*.pem`, `*.key` and `kubeconfig*`. Optional hardening not yet
-added: a gitleaks pre-commit hook or CI job.
+`.gitignore` excludes `.env*`, `*.pem`, `*.key` and `kubeconfig*`, and CI runs gitleaks over the
+full history. Optional hardening not yet added: a gitleaks pre-commit hook.
 
 ## Secrets: Sealed Secrets
 
