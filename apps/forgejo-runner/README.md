@@ -43,6 +43,23 @@ CI runs whatever code is in a workflow, so I keep it locked down:
 - The runner runs as non-root with a read-only filesystem. It starts job containers through a
   Docker-in-Docker sidecar that only the runner can reach.
 
+### The one privileged container
+
+The Docker-in-Docker sidecar runs with `privileged: true`, because dockerd needs it to start
+containers. It's the weakest spot in the cluster, and the reason this namespace allows
+`privileged` pods. Here is how it's fenced in:
+
+- It only runs on the laptop, away from everything that can read secrets.
+- Jobs never get its socket, so a workflow can't start a privileged container of its own.
+- Jobs do run inside it, though. A job that broke out of its own container would land in a
+  privileged one, and from there it could reach the laptop. That's why I only run my own
+  repositories on this runner.
+- Its pod can only reach DNS, Forgejo, Traefik, BuildKit and the internet.
+
+What I'd like to do next is drop `privileged`. [Sysbox](https://github.com/nestybox/sysbox),
+installed on the laptop, would let dockerd run without it. I could also try a rootless dockerd
+with the same relaxed profiles that `buildkitd` already uses.
+
 ## Files
 
 ```text
