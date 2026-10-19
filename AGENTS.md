@@ -13,7 +13,7 @@ committed byte is public.
 | --- | --- |
 | `bootstrap/` | The two root Argo CD Applications (`infra` at sync-wave 0, `apps` at wave 1). Applied once by hand with `kubectl apply -k bootstrap`; not synced by Argo CD itself. |
 | `infra/` | Cluster components: Argo CD (self-managed from its Helm chart), Sealed Secrets, cert-manager, the Tailscale proxy that puts Traefik on the tailnet, the CoreDNS override, Traefik settings, and monitoring (Prometheus and Grafana from kube-prometheus-stack). Charts are pulled by Argo CD with values from this repo; k3s's bundled Traefik is tuned through a `HelmChartConfig`. |
-| `apps/` | Workloads (Forgejo, its Actions runner, finance-app, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
+| `apps/` | Workloads (Forgejo, its Actions runner, finance-app, portfolio, the in-cluster registry, Pi-hole) as plain Kustomize manifests under `apps/<app>/manifests/`. |
 | `.forgejo/` | CI for this repository: the `validate` workflow and the script it runs. |
 
 Each directory is a Kustomize base whose `kustomization.yaml` explicitly lists its children, so

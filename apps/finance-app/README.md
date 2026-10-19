@@ -27,4 +27,4 @@ It's only reachable from my tailnet.
 
 ---
 
-Next: [Pi-hole](../pihole/), the ad blocker for my home network. · [Back to the start](../../)
+Next: [Portfolio](../portfolio/), which deploys itself from a release tag. · [Back to the start](../../)

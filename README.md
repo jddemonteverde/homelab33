@@ -42,6 +42,7 @@ devices. So I can open them from my phone or laptop wherever I am, but nobody el
 | Forgejo runner | Runs my CI pipelines and builds Docker images | [apps/forgejo-runner](apps/forgejo-runner/) |
 | Container registry | Stores the images my CI builds | [apps/registry](apps/registry/) |
 | Finance app | A personal finance app I made | [apps/finance-app](apps/finance-app/) |
+| Portfolio | My portfolio site and blog | [apps/portfolio](apps/portfolio/) |
 | Pi-hole | Blocks ads for every device at home | [apps/pihole](apps/pihole/) |
 | Monitoring | Lets me check on my servers when I'm away | [infra/monitoring](infra/monitoring/) |
 
