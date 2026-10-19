@@ -7,6 +7,8 @@ Devices at home use it for DNS because the router gives out the desktop's addres
 server. The admin page is only reachable from my tailnet, so I can check it or allow a blocked
 site even when I'm not home.
 
+![Pi-hole's dashboard: queries, blocked queries and client activity over the last 24 hours](../../docs/images/pihole-dashboard.png)
+
 ## How it's set up
 
 | | |

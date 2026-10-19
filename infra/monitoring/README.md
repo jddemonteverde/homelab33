@@ -13,6 +13,10 @@ it from my phone and see how the machines are doing and what's using them.
 The two dashboards link to each other. They're saved as JSON files in `manifests/dashboards/`.
 Grafana can't save changes to them, so I edit them through git.
 
+![The Homelab Nodes dashboard](../../docs/images/grafana-homelab-nodes.png)
+
+![The Top Consumers dashboard](../../docs/images/grafana-top-consumers.png)
+
 ## How it's set up
 
 It's the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)

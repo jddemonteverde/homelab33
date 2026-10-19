@@ -10,6 +10,8 @@ Actions. This repository is hosted on it too.
 
 It's only reachable from my tailnet, so there's no public login page.
 
+![This repository on my Forgejo](../../docs/images/forgejo-repo.png)
+
 ## How it's set up
 
 | | |

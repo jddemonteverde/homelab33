@@ -9,7 +9,10 @@ There's no limit on minutes. The only limit is how fast the old laptop is.
 Workflows use the GitHub Actions format, so `runs-on: ubuntu-latest` works. It's only a label:
 jobs run in the runner's `node:24-trixie` image, not Ubuntu.
 
-The runner has no web page. It connects to Forgejo and waits for jobs.
+The runner has no web page. It connects to Forgejo and waits for jobs. Its runs show up in each
+repository's Actions tab:
+
+![My portfolio's runs in Forgejo Actions](../../docs/images/forgejo-actions.png)
 
 ## How a build goes
 

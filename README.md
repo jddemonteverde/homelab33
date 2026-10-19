@@ -52,6 +52,11 @@ Both were sitting unused before this. Now they run all the time.
 | OS | Ubuntu 22.04 LTS | Ubuntu 22.04 LTS |
 | k3s | v1.36.4 | v1.36.4 |
 
+<img src="docs/images/homelab33-hardware.jpg" alt="The desktop as node 1 with the laptop on top of it as node 2, next to a UPS, under a shelf holding a 5-port network switch and a surge protector power strip" width="480">
+
+The desktop is node 1 and the laptop, sitting on top of it, is node 2. A 5-port switch connects
+them, and a UPS sits next to them.
+
 ## 2. How I reach my apps
 
 None of my apps are open to the internet. They are only reachable through my
@@ -70,6 +75,10 @@ devices. So I can open them from my phone or laptop wherever I am, but nobody el
 | Pi-hole | Blocks ads for every device at home | [apps/pihole](apps/pihole/) |
 | Monitoring | Lets me check on my servers when I'm away | [infra/monitoring](infra/monitoring/) |
 
+Here it all is in [k9s](https://k9scli.io), every namespace and pod:
+
+![k9s showing every namespace, and every pod with its status, CPU and memory](docs/images/k9s.png)
+
 If you want to follow along, start with [Forgejo](apps/forgejo/). Each page links to the next one
 at the bottom.
 
@@ -82,12 +91,20 @@ which builds the Docker image and stores it in my own registry, all inside the c
 
 ![Build & push an image](docs/diagrams/homelab33.1-build.svg)
 
+In Forgejo Actions, each push to `main` and each version tag is a run:
+
+![My portfolio's runs in Forgejo Actions](docs/images/forgejo-actions.png)
+
 Then the new image tag is committed to this repository. The pipeline does that itself once the
 image is in the registry, so the tag is all I push. Forgejo mirrors this repository to GitHub,
 Argo CD picks up the change from there and updates the cluster, and the new pod pulls the image
 from the registry.
 
 ![GitOps deploy](docs/diagrams/homelab33.2-deploy.svg)
+
+Argo CD shows every app healthy and synced to `main`:
+
+![Argo CD's applications, all Healthy and Synced](docs/images/argocd-applications.png)
 
 ## 5. How the repository is laid out
 
