@@ -20,12 +20,13 @@ Helm chart, version 91.9.0, installed by Argo CD with `values.yaml` from this fo
 
 | Part | What it does |
 | --- | --- |
-| Prometheus | Collects the numbers. Keeps 30 days, up to 15 GB, on a 20 Gi volume |
+| Prometheus | Collects the numbers. Keeps 30 days or 15 GB, whichever comes first, on a 20 Gi volume |
 | Grafana | Shows the dashboards, over HTTPS, tailnet only. Admin password is a Sealed Secret |
 | node-exporter | Runs on each machine and reports its hardware stats |
 | kube-state-metrics | Reports the state of Kubernetes objects |
 
-Alertmanager is off.
+Alertmanager is off. The chart's default alert rules still run, so firing alerts show in
+Prometheus and Grafana, but nothing sends them anywhere yet.
 
 - Prometheus has no login, so it has no Ingress. Only Grafana talks to it, inside the cluster.
 - node-exporter uses the host network so it can see the machine's real network interfaces. It

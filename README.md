@@ -1,11 +1,12 @@
 # homelab33
 
 This is my homelab. It runs on an old desktop PC and an old laptop at home, using
-[k3s](https://k3s.io), a small version of Kubernetes.
+[k3s](https://k3s.io), a lightweight, certified Kubernetes distribution.
 
 This repository is the setup of the whole cluster. I don't log into the servers to install or
-change things. I change the files here, push to `main`, and [Argo CD](https://argo-cd.readthedocs.io)
-updates the cluster to match. This way of working is called GitOps.
+change things. I change the files here and push to `main` on my Forgejo, which mirrors it to
+GitHub, and [Argo CD](https://argo-cd.readthedocs.io) updates the cluster to match. This way of
+working is called GitOps.
 
 Let me walk you through it.
 
@@ -51,14 +52,15 @@ at the bottom.
 
 ## 4. How a change goes live
 
-Shipping a new version of one of my apps takes two steps.
+Shipping a new version of one of my apps starts with one step from me.
 
 First, I push a version tag to the app's repository on Forgejo. Forgejo runs the CI pipeline,
 which builds the Docker image and stores it in my own registry, all inside the cluster.
 
 ![Build & push an image](docs/diagrams/homelab33.1-build.svg)
 
-Then I bump the image tag in this repository, also on Forgejo. Forgejo mirrors it to GitHub,
+Then the new image tag is committed to this repository. The pipeline does that itself once the
+image is in the registry, so the tag is all I push. Forgejo mirrors this repository to GitHub,
 Argo CD picks up the change from there and updates the cluster, and the new pod pulls the image
 from the registry.
 
@@ -76,8 +78,10 @@ If you want to see how the pieces connect, [infra/](infra/) explains it.
 
 ## 6. A few things I made sure of
 
-- Every app uses HTTPS with a Let's Encrypt certificate that renews by itself.
+- Every app is served over HTTPS with one wildcard Let's Encrypt certificate. cert-manager renews
+  it by itself with a DNS-01 challenge, so nothing has to be open to the internet.
 - Passwords and keys are stored here only in encrypted form (Sealed Secrets), so this repo can
   be public.
-- Apps run without root where they can, and each one only accepts connections it needs.
+- Apps run without root where they can, and each namespace has a NetworkPolicy that only lets in
+  the connections it needs.
 - Every image and chart version is pinned, so nothing changes unless I change it here.

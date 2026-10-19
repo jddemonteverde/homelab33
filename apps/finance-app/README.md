@@ -2,7 +2,8 @@
 
 A personal finance app I made. It uses everything from the previous pages: the code is on my
 [Forgejo](../forgejo/), my [runner](../forgejo-runner/) builds the image and pushes it to my
-[registry](../registry/), and changing the image tag here deploys the new version.
+[registry](../registry/), and changing the image tag here deploys the new version. CI makes that
+change itself.
 
 It's only reachable from my tailnet.
 
@@ -21,8 +22,9 @@ It's only reachable from my tailnet.
 
 ## Releasing a new version
 
-1. Push to the app's repository on Forgejo. CI builds and pushes `finance-app:<new tag>`.
-2. Change the image tag in `manifests/deployment.yaml` and merge to `main`.
+1. Push a `v*` tag to the app's repository on Forgejo.
+2. CI builds and pushes `finance-app:<version>`. Once the image is in the registry, it commits the
+   new tag to `manifests/deployment.yaml` here, as `finance-app ci`.
 3. Argo CD deploys it.
 
 ---

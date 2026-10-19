@@ -1,8 +1,8 @@
 # Forgejo
 
-I host my own Git platform so I can have unlimited pipeline minutes. With
-[Forgejo runners](../forgejo-runner/) I build my Docker images and run my CI here on my own
-machines, as often as I want, without paying for build minutes.
+I host my own Git platform so my code, my pipelines and my images all stay on my own machines.
+With [Forgejo runners](../forgejo-runner/) I build my Docker images and run my CI here, as often as
+I want.
 
 [Forgejo](https://forgejo.org) is an open-source Git platform. It has what I'd use on GitHub:
 repositories, issues, pull requests, and Actions, which use the same workflow format as GitHub

@@ -30,8 +30,8 @@ HTTPS.
 ## How a change gets to the cluster
 
 ```text
-push to main ──► Argo CD ──► bootstrap/infra (first) ──► infra/*
-                        └──► bootstrap/apps  (second) ──► apps/*
+push to main on Forgejo ──► mirror on GitHub ──► Argo CD ──► bootstrap/infra (first) ──► infra/*
+                                                        └──► bootstrap/apps  (second) ──► apps/*
 ```
 
 Argo CD syncs on its own. If I delete something from git, it's removed from the cluster too.
