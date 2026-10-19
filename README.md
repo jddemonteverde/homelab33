@@ -1,5 +1,8 @@
 # homelab33
 
+A GitOps-managed Kubernetes cluster on two recycled machines. It runs my own Git, CI, image
+registry and apps, and none of it is open to the internet.
+
 This is my homelab. It runs on an old desktop PC and an old laptop at home, using
 [k3s](https://k3s.io), a lightweight, certified Kubernetes distribution.
 
@@ -7,6 +10,26 @@ This repository is the setup of the whole cluster. I don't log into the servers 
 change things. I change the files here and push to `main` on my Forgejo, which mirrors it to
 GitHub, and [Argo CD](https://argo-cd.readthedocs.io) updates the cluster to match. This way of
 working is called GitOps.
+
+## Highlights
+
+- **A tag is all I push to ship an app.** CI builds the image on rootless BuildKit, commits the new
+  tag here, and Argo CD rolls it out. [How a change goes live](#4-how-a-change-goes-live)
+- **Nothing is open to the internet.** Apps are reachable only from my tailnet, through an
+  unprivileged Tailscale proxy, and served with a real wildcard certificate.
+  [infra](infra/)
+- **CI can't take over the cluster.** Jobs get no Docker socket, run only on the laptop, and can
+  reach only what they need. Everything that can read secrets runs on the other machine.
+  [Forgejo runner](apps/forgejo-runner/)
+- **Nodes pull my private images with no node config.** A proxy on `localhost` gets around
+  containerd's HTTPS rule. [Container registry](apps/registry/)
+- **Every commit is checked.** CI builds and schema-validates every manifest, rejects plaintext
+  secrets and unpinned images, and scans the history for leaked credentials.
+  [validate.yml](.forgejo/workflows/validate.yml)
+- **AI agents work here under written rules.** [AGENTS.md](AGENTS.md) tells them what they may
+  change, what they must never commit, and that only git changes the cluster.
+
+The bugs and choices behind these are in [Decisions and lessons](docs/decisions.md).
 
 Let me walk you through it.
 
@@ -85,3 +108,22 @@ If you want to see how the pieces connect, [infra/](infra/) explains it.
 - Apps run without root where they can, and each namespace has a NetworkPolicy that only lets in
   the connections it needs.
 - Every image and chart version is pinned, so nothing changes unless I change it here.
+- CI checks every commit to `main` (see Highlights).
+
+## 7. What's not done yet
+
+- **One control-plane node.** If the desktop is down, the cluster can't be managed, and my home
+  network loses its DNS.
+- **No automated backups.** Volumes live on each machine's own disk. For now, backups are taken
+  by hand, as described in [Disaster recovery](docs/disaster-recovery.md).
+- **One privileged container.** CI's Docker-in-Docker sidecar needs `privileged`.
+  [How it's fenced in](apps/forgejo-runner/#the-one-privileged-container)
+- **No login on the registry or Prometheus.** NetworkPolicies decide who can reach them.
+- **Alerts go nowhere.** The default alert rules run, but nothing sends them to me yet.
+- **CI flags a bad commit but doesn't block it.** Image bumps from CI go straight to `main`.
+
+## 8. More to read
+
+- [Decisions and lessons](docs/decisions.md): why things are the way they are
+- [Disaster recovery](docs/disaster-recovery.md): what holds state and how to rebuild
+- [AGENTS.md](AGENTS.md): the full conventions, written for AI agents but useful for anyone
