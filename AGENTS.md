@@ -153,8 +153,8 @@ Rules for agents:
 - If a secret is committed by accident, tell the owner immediately so it can be rotated, then
   remove it.
 
-Optional hardening not yet added: a `.gitignore` for `.env*`, `*.pem`, `*.key`, `kubeconfig*`,
-and a gitleaks pre-commit hook or GitHub Action.
+`.gitignore` excludes `.env*`, `*.pem`, `*.key` and `kubeconfig*`. Optional hardening not yet
+added: a gitleaks pre-commit hook or CI job.
 
 ## Secrets: Sealed Secrets
 

@@ -1,2 +1,8 @@
 # draw.io Desktop backup copies (written on every save)
 .$*.bkp
+
+# Credentials that must never be committed (see Security in AGENTS.md)
+.env*
+*.pem
+*.key
+kubeconfig*
