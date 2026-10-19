@@ -43,6 +43,13 @@ spec:
               value: unix:///run/dind/docker.sock
           securityContext:
             privileged: true
+          # Job containers run inside dockerd, so this limit caps every job too.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
           startupProbe:
             exec:
               command:
@@ -82,6 +89,12 @@ spec:
             capabilities:
               drop:
                 - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
           volumeMounts:
             - name: config
               mountPath: /etc/forgejo-runner

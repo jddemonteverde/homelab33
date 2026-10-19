@@ -53,6 +53,12 @@ spec:
               type: Unconfined
             appArmorProfile:
               type: Unconfined
+          resources:
+            requests:
+              cpu: 100m
+              memory: 2Gi
+            limits:
+              memory: 4Gi
           readinessProbe:
             exec:
               command:
