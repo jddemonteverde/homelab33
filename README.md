@@ -25,7 +25,7 @@ working is called GitOps.
   containerd's HTTPS rule. [Container registry](apps/registry/)
 - **Every commit is checked.** CI builds and schema-validates every manifest, rejects plaintext
   secrets and unpinned images, and scans the history for leaked credentials.
-  [validate.yml](.forgejo/workflows/validate.yml)
+  [CI](.forgejo/)
 - **AI agents work here under written rules.** [AGENTS.md](AGENTS.md) tells them what they may
   change, what they must never commit, and that only git changes the cluster.
 
@@ -108,7 +108,7 @@ If you want to see how the pieces connect, [infra/](infra/) explains it.
 - Apps run without root where they can, and each namespace has a NetworkPolicy that only lets in
   the connections it needs.
 - Every image and chart version is pinned, so nothing changes unless I change it here.
-- CI checks every commit to `main` (see Highlights).
+- CI checks every commit to `main`. [What it checks](.forgejo/)
 
 ## 7. What's not done yet
 
