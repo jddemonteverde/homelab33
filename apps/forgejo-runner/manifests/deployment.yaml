@@ -31,7 +31,7 @@ spec:
       initContainers:
         # Native sidecar: the runner starts once dockerd answers and stops before it.
         - name: dind
-          image: docker.io/library/docker:29.8.1-dind
+          image: docker.io/library/docker:29.8.2-dind
           restartPolicy: Always
           # Leading "dockerd" skips the image's default TCP listener. Socket group 1000 is the runner's group.
           args:

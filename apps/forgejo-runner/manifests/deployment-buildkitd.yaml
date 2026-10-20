@@ -30,7 +30,7 @@ spec:
                     operator: DoesNotExist
       containers:
         - name: buildkitd
-          image: docker.io/moby/buildkit:v0.33.0-rootless
+          image: docker.io/moby/buildkit:v0.33.1-rootless
           args:
             - --config=/etc/buildkit/buildkitd.toml
             - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
