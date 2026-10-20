@@ -15,8 +15,8 @@ All volumes use k3s's `local-path` storage, so each one is a folder on one machi
 | What | Where | If it's lost |
 | --- | --- | --- |
 | **Sealed Secrets private key** | Secret in `kube-system`, desktop | Every `SealedSecret` in git becomes unreadable. Every secret has to be recreated and resealed |
-| Forgejo: repositories, issues, Actions secrets, users | `forgejo-data` (50 Gi), laptop | Repositories on Forgejo only, and everything else in Forgejo |
-| finance-app database (SQLite) | `finance-app-data` (2 Gi), laptop | All finance data |
+| Forgejo: repositories, issues, Actions secrets, users | `forgejo-data` (50 Gi), desktop | Repositories on Forgejo only, and everything else in Forgejo |
+| finance-app database (SQLite) | `finance-app-data` (2 Gi), desktop | All finance data |
 | Pi-hole settings and lists | `pihole-data` (1 Gi), desktop | Custom lists and settings. Query history doesn't matter |
 | Tailscale node identity | Secret `tailscale-state`, desktop | The proxy needs a new auth key, and the lab DNS record a new address |
 | Registry images | `registry-data` (5 Gi), laptop | Nothing lasting: re-run each app's release workflow |
@@ -50,7 +50,7 @@ kubectl -n forgejo cp "$(kubectl -n forgejo get pod -l app=forgejo -o name | cut
 kubectl -n forgejo exec deploy/forgejo -- rm /tmp/forgejo-dump.zip
 ```
 
-**finance-app.** On the laptop, with the `sqlite3` package installed. `.backup` is safe while the
+**finance-app.** On the desktop, with the `sqlite3` package installed. `.backup` is safe while the
 app is running:
 
 ```sh
@@ -96,13 +96,28 @@ sudo sqlite3 /var/lib/rancher/k3s/storage/*_finance-app_finance-app-data/finance
    address.
 
 6. Restore data, one app at a time. Argo CD would undo a manual scale-down, so pause it first:
-   - Turn off auto-sync for the app (`argocd app set <app> --sync-policy none`).
+   - Turn off auto-sync for the parent `apps` Application, or it puts the app's own setting
+     back, then for the app:
+
+     ```sh
+     for app in apps <app>; do
+       kubectl -n argocd patch application "$app" --type merge \
+         -p '{"spec":{"syncPolicy":{"automated":null}}}'
+     done
+     ```
+
    - Scale the app to 0.
    - Copy the data into its folder under `/var/lib/rancher/k3s/storage/` on the right machine.
      For Forgejo, unpack the dump into it (see Forgejo's docs on restoring a dump). For
      finance-app, copy in `finance-app.db`.
    - Scale it back up.
-   - Turn auto-sync back on.
+   - Turn auto-sync back on for `apps`. It then puts the app's own setting back from git:
+
+     ```sh
+     kubectl -n argocd patch application apps --type merge \
+       -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true,"allowEmpty":true}}}}'
+     ```
+
    - For Pi-hole, import the Teleporter file in the admin page.
 
 7. Re-run each app's latest release workflow on Forgejo to refill the registry.

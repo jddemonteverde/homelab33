@@ -34,7 +34,9 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
 - Prefer rootless images and set `securityContext` (see `apps/forgejo/manifests/deployment.yaml`).
 - Node placement: anything that can read every Secret or administer the cluster (Argo CD, Sealed
   Secrets, Traefik, cert-manager) runs only on the control-plane node
-  (`nodeSelector: node-role.kubernetes.io/control-plane: "true"`). CI (`forgejo-runner`,
+  (`nodeSelector: node-role.kubernetes.io/control-plane: "true"`). So do Forgejo, which holds
+  every repository and the Actions secrets and so controls the cluster through homelab33, and
+  finance-app, for its data. CI (`forgejo-runner`,
   `buildkitd`) runs code from workflows and must never run there (required node affinity:
   `node-role.kubernetes.io/control-plane` `DoesNotExist`). New components follow the same split.
   The Tailscale proxy (`infra/tailscale-proxy`) also runs on the control plane, because it holds

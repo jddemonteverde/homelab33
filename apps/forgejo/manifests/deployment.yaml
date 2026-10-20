@@ -17,6 +17,10 @@ spec:
       labels:
         app: forgejo
     spec:
+      # Forgejo holds every repository and the Actions secrets, so it controls the cluster
+      # through homelab33. Keep it off the worker, which runs CI and the public site.
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "true"
       securityContext:
         fsGroup: 1000
       containers:

@@ -38,8 +38,8 @@ Let me walk you through it.
 
 | Machine | What it does |
 | --- | --- |
-| Old desktop PC | Runs the parts that manage the cluster, and the DNS for my home network |
-| Old laptop | Runs my apps and my CI builds |
+| Old desktop PC | Runs the parts that manage the cluster, Forgejo, my finance app, and the DNS for my home network |
+| Old laptop | Runs my public site and my CI builds |
 
 Both were sitting unused before this. Now they run all the time.
 
