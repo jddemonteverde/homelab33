@@ -6,6 +6,10 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    # k3s v1.36.4 bundles Traefik 3.7.8, which has published advisories. This overrides the tag
+    # only; drop it once k3s bundles 3.7.15 or later.
+    image:
+      tag: "3.7.15"
     # Off the CI node; see "Node placement" in AGENTS.md.
     nodeSelector:
       node-role.kubernetes.io/control-plane: "true"
