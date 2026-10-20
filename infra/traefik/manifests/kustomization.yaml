@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - helmchartconfig.yaml
   - tlsstore.yaml
+  - networkpolicy.yaml
