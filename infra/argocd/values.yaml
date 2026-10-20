@@ -3,12 +3,28 @@ global:
   # Off the CI node; see "Node placement" in AGENTS.md.
   nodeSelector:
     node-role.kubernetes.io/control-plane: "true"
+  # When true, the chart also writes an allow-all policy for argocd-server, and policies only add
+  # up. The components below keep the chart's policies; argocd-server's is in infra/argocd/manifests.
+  networkPolicy:
+    create: false
 
 configs:
   params:
     server.insecure: true
 
+controller:
+  networkPolicy:
+    create: true
+
+redis:
+  networkPolicy:
+    create: true
+
 server:
   ingress:
     enabled: true
     ingressClassName: traefik
+
+repoServer:
+  networkPolicy:
+    create: true

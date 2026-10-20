@@ -1,0 +1,11 @@
+# Nothing gets in unless another policy in this namespace allows it: the chart's for the
+# controller, repo server and Redis, and networkpolicy-server.yaml.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: argocd
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

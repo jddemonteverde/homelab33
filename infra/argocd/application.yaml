@@ -18,6 +18,9 @@ spec:
     - repoURL: https://github.com/jddemonteverde/homelab33.git
       targetRevision: main
       ref: values
+    - repoURL: https://github.com/jddemonteverde/homelab33.git
+      targetRevision: main
+      path: infra/argocd/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
