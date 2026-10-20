@@ -9,7 +9,7 @@ depends on them.
 | `sealed-secrets/` | Decrypts the encrypted secrets stored in this repo. The key never leaves the cluster |
 | `cert-manager/` | Gets a Let's Encrypt wildcard certificate for my lab domain and renews it |
 | `traefik/` | Settings for Traefik, which comes with k3s and routes HTTPS to the apps |
-| `tailscale-proxy/` | Connects Traefik to my tailnet. It's the only way into my apps |
+| `tailscale-proxy/` | Connects Traefik to my tailnet. It's the only way into my apps, except the public portfolio |
 | `coredns-custom/` | Lets pods reach my apps by their hostnames from inside the cluster |
 | [`monitoring/`](monitoring/) | Prometheus and Grafana |
 
@@ -26,6 +26,9 @@ Tailscale proxy ──► Traefik ──► app
 
 Traefik isn't open to my home network, only to the Tailscale proxy. It also redirects HTTP to
 HTTPS.
+
+The portfolio is also public, through its own Cloudflare Tunnel. The tunnel goes straight to the
+site and skips Traefik, so it can't reach any other app. [How it's set up](../apps/portfolio/)
 
 ## How a change gets to the cluster
 

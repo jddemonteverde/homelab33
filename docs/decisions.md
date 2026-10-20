@@ -32,6 +32,15 @@ DNS-01 challenge, so nothing needs to be reachable from the internet to prove I 
 Pods resolve the public names through a CoreDNS rewrite, because publicly they point at a
 Tailscale address that pods can't reach.
 
+## One public site, through a tunnel
+
+**Oct 19.** The portfolio is the one app meant for anyone to open, so it went public at
+`jddemonteverde.com`. Port forwarding would have opened a port on my router. Instead,
+`cloudflared` runs in the portfolio's namespace and connects out to Cloudflare. Its route points
+straight at the portfolio Service, not at Traefik, and its NetworkPolicy lets it reach only DNS,
+the site and Cloudflare on port 7844. So the tunnel can't be used to reach any other app, and
+everything else stays tailnet only.
+
 ## Pi-hole: two bugs behind one port
 
 **Oct 5.** Publishing DNS with `hostPort: 53` broke the node's own DNS. The rule also caught
