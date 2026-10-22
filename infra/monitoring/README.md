@@ -29,8 +29,8 @@ Helm chart, pinned, installed by Argo CD with `values.yaml` from this folder.
 | node-exporter | Runs on each machine and reports its hardware stats |
 | kube-state-metrics | Reports the state of Kubernetes objects |
 
-Alertmanager is off. The chart's default alert rules still run, so firing alerts show in
-Prometheus and Grafana, but nothing sends them anywhere yet.
+Alertmanager is off for now. The chart's default alert rules still run, and firing alerts show in
+Prometheus and Grafana.
 
 - Prometheus has no login, so it has no Ingress. Only Grafana talks to it, inside the cluster.
 - node-exporter uses the host network so it can see the machine's real network interfaces. It

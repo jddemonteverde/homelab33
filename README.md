@@ -134,17 +134,17 @@ If you want to see how the pieces connect, [infra/](infra/) explains it.
 - Every image and chart version is pinned, so nothing changes unless I change it here.
 - CI checks every commit to `main`. [What it checks](.forgejo/)
 
-## 7. What's not done yet
+## 7. What's next
 
-- **One control-plane node.** If the desktop is down, the cluster can't be managed, and my home
-  network loses its DNS.
-- **No automated backups.** Volumes live on each machine's own disk. For now, backups are taken
-  by hand, as described in [Disaster recovery](docs/disaster-recovery.md).
-- **One privileged container.** CI's Docker-in-Docker sidecar needs `privileged`.
+- **A second control-plane node.** Today the desktop is the only one, so if it's down, the
+  cluster can't be managed and my home network loses its DNS.
+- **Scheduled, off-site backups.** Volumes live on each machine's own disk, and I back them up by
+  hand for now. [Disaster recovery](docs/disaster-recovery.md)
+- **Dropping the last privileged container.** CI's Docker-in-Docker sidecar needs `privileged`.
   [How it's fenced in](apps/forgejo-runner/#the-one-privileged-container)
-- **No login on the registry or Prometheus.** NetworkPolicies decide who can reach them.
-- **Alerts go nowhere.** The default alert rules run, but nothing sends them to me yet.
-- **CI flags a bad commit but doesn't block it.** Image bumps from CI go straight to `main`.
+- **Alerts on my phone.** The default alert rules run and show in Grafana.
+- **Required checks.** CI checks every commit to `main`, and image bumps from CI land there
+  directly.
 
 ## 8. More to read
 

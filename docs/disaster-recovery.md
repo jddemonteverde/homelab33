@@ -4,8 +4,8 @@ What I'd need to rebuild this cluster if a machine died, and how. Everything Arg
 in git, so most of the cluster comes back by itself. What doesn't come back is data on the
 volumes, a few secrets that only exist in the cluster, and the machines themselves.
 
-There are no automated backups yet. The backups below are taken by hand, and I haven't done a
-full restore yet. The first real one will correct this page.
+The backups below are taken by hand. Forgejo's and the finance app's volumes were restored from
+copies when they moved to the desktop on Oct 20.
 
 ## What holds state
 
@@ -131,6 +131,5 @@ the `tailnet-only` Middlewares, or Argo CD, Grafana, Pi-hole and finance-app ans
 ## Not covered yet
 
 - Automated, off-site backups, on a schedule.
-- A tested restore, and how long it takes.
 - The exact k3s install options and the Ubuntu setup. Neither is in git.
 - The router and Tailscale admin settings. Neither is in git.
