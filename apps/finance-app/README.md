@@ -17,7 +17,10 @@ It's only reachable from my tailnet.
 | Secrets | Session secret, as a Sealed Secret |
 
 - One replica with the `Recreate` strategy, because two pods would open the same SQLite file.
-- It runs as a non-root user.
+- It runs as a non-root user with no capabilities and no Kubernetes API token, and the namespace
+  enforces the `restricted` Pod Security Standard.
+- Its root filesystem is read-only. It writes only to its database volume and two small scratch
+  folders.
 - Its NetworkPolicy only lets in Traefik.
 - It has its own Argo CD project, which deploys only into the `finance-app` namespace and creates
   nothing cluster-wide except that namespace. CI commits here, so a bad commit stays inside it.

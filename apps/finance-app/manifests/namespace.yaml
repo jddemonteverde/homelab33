@@ -2,5 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: finance-app
+  labels:
+    # CI commits this app's image bumps, so the namespace refuses any pod that isn't unprivileged.
+    pod-security.kubernetes.io/enforce: restricted
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false

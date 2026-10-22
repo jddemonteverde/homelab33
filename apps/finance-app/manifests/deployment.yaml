@@ -18,6 +18,7 @@ spec:
       labels:
         app: finance-app
     spec:
+      automountServiceAccountToken: false
       # Keep the finance data off the worker, which runs CI and the public site.
       nodeSelector:
         node-role.kubernetes.io/control-plane: "true"
@@ -46,6 +47,7 @@ spec:
               containerPort: 3000
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -55,9 +57,14 @@ spec:
               memory: 256Mi
             limits:
               memory: 512Mi
+          # Next creates its cache directory at start; SQLite may spill temporary files to /tmp.
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: next-cache
+              mountPath: /app/.next/cache
+            - name: tmp
+              mountPath: /tmp
           livenessProbe:
             httpGet:
               path: /api/health
@@ -75,3 +82,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: finance-app-data
+        - name: next-cache
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
