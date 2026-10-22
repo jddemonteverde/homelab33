@@ -21,9 +21,12 @@ It's only reachable from my tailnet, so there's no public login page.
 | Web | HTTPS through Traefik, tailnet only |
 | Secrets | `SECRET_KEY`, `INTERNAL_TOKEN` and others, as a Sealed Secret |
 
-- It runs as a non-root user.
+- It runs as a non-root user with no capabilities, and the namespace enforces the `restricted` Pod
+  Security Standard.
 - Its NetworkPolicy only lets in Traefik and the Actions runner, on the web port. Git works over
   HTTPS. There is an SSH Service, but the policy doesn't let SSH traffic in.
+- Going out, it can reach only DNS and the internet on ports 22 and 443, for the push mirror to
+  GitHub. Nothing on my home network, my tailnet or the cluster.
 - Pods in the cluster reach Forgejo by its normal hostname through a CoreDNS rewrite
   (`infra/coredns-custom`). Actions needs this to check out code.
 

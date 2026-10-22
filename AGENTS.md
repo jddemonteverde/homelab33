@@ -46,9 +46,11 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   node-exporter, a DaemonSet, runs on every node.
 - NetworkPolicies: each app namespace has a policy that selects all its pods and allows ingress
   only from Traefik on the app's port, plus any source it names. `forgejo-runner` also denies
-  egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `tailscale` accepts nothing
-  and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on the LAN. The
-  registry admits only `registry-proxy`, which relays the nodes' image pulls, and `buildkitd`.
+  egress except DNS, Forgejo, Traefik, `buildkitd` and the internet. `forgejo` may reach only
+  DNS and the internet on ports 22 and 443, which the GitHub push mirror uses. `tailscale`
+  accepts nothing and may reach only DNS, Traefik, the Kubernetes API, the internet, and UDP on
+  the LAN. The registry admits only `registry-proxy`, which relays the nodes' image pulls, and
+  `buildkitd`.
   `pihole` also admits DNS (port 53) from the LAN. `monitoring` admits Traefik on Grafana's port
   and its own pods. `portfolio` also admits its `cloudflared` pods, whose own policy lets them
   reach only DNS, the site, and the internet on port 7844.
