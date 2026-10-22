@@ -125,6 +125,10 @@ sudo sqlite3 /var/lib/rancher/k3s/storage/*_finance-app_finance-app-data/finance
 If the desktop's LAN address changes, update Pi-hole's `hostIP` in `apps/pihole` and the DNS
 server the router hands out.
 
+If the desktop's pod range isn't `10.42.0.0/24` after a rebuild
+(`kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name} {.spec.podCIDR}{"\n"}{end}'`), update
+the `tailnet-only` Middlewares, or Argo CD, Grafana, Pi-hole and finance-app answer 403.
+
 ## Not covered yet
 
 - Automated, off-site backups, on a schedule.

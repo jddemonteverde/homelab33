@@ -106,6 +106,13 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   `ClusterIP`, set in `infra/traefik`) and redirects HTTP to HTTPS. An app that pods call by its
   lab name (Forgejo, for Actions checkouts) also needs a rewrite in `infra/coredns-custom`,
   because publicly the name points at a Tailscale address pods can't reach.
+- `tailnet-only`: CI pods may reach Traefik, because Actions checks out from Forgejo through it.
+  Traefik routes by hostname, so they could also reach every other app's login page. An Ingress
+  for an admin UI or private data (Argo CD, Grafana, Pi-hole, finance-app) therefore references a
+  `tailnet-only` Middleware in its own namespace (`middleware.yaml`, annotation
+  `traefik.ingress.kubernetes.io/router.middlewares: <namespace>-tailnet-only@kubernetescrd`). It
+  admits only `10.42.0.0/24`, the control-plane node's pod range, where the Tailscale proxy runs
+  and CI never does. New apps of that kind add one; Forgejo can't, because CI needs it.
 - Traefik serves the Let's Encrypt wildcard certificate for `*.lab.jddemonteverde.com` as its
   default (the `TLSStore` named `default` in `infra/traefik`), so an Ingress under that name
   needs no `tls:` section.

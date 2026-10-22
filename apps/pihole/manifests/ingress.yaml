@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: pihole
   namespace: pihole
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: pihole-tailnet-only@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

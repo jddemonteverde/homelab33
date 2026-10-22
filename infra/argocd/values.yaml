@@ -28,6 +28,8 @@ server:
   ingress:
     enabled: true
     ingressClassName: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.middlewares: argocd-tailnet-only@kubernetescrd
 
 repoServer:
   networkPolicy:

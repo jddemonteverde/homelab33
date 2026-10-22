@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: finance-app
   namespace: finance-app
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: finance-app-tailnet-only@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

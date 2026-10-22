@@ -1,0 +1,10 @@
+# Tailnet clients only; see "tailnet-only" in AGENTS.md. CI reaches Traefik too, for Forgejo.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: tailnet-only
+  namespace: argocd
+spec:
+  ipAllowList:
+    sourceRange:
+      - 10.42.0.0/24

@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - networkpolicy-default-deny.yaml
   - networkpolicy-server.yaml
+  - middleware.yaml
