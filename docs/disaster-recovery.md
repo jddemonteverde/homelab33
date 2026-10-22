@@ -36,9 +36,12 @@ encrypted drive.
 days and keeps the old ones, so export it again after each new key:
 
 ```sh
-kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml \
-  > sealed-secrets-keys.yaml
+(umask 077 && kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key \
+  -o yaml > sealed-secrets-keys.yaml)
 ```
+
+The file holds the private key in plain text. Move it to the password manager or encrypted drive,
+then delete it.
 
 **Forgejo.** `forgejo dump` writes repositories, the database and settings to one zip:
 
@@ -50,12 +53,14 @@ kubectl -n forgejo exec deploy/forgejo -- rm /tmp/forgejo-dump.zip
 ```
 
 **finance-app.** On the desktop, with the `sqlite3` package installed. `.backup` is safe while the
-app is running:
+app is running. The copy goes to root's home, readable by root only, not to the shared `/tmp`:
 
 ```sh
-sudo sqlite3 /var/lib/rancher/k3s/storage/*_finance-app_finance-app-data/finance-app.db \
-  ".backup '/tmp/finance-app.db'"
+sudo sh -c 'umask 077 && sqlite3 /var/lib/rancher/k3s/storage/*_finance-app_finance-app-data/finance-app.db \
+  ".backup /root/finance-app.db"'
 ```
+
+Copy it off with `sudo cat /root/finance-app.db` over SSH, then `sudo rm /root/finance-app.db`.
 
 **Pi-hole.** Settings → Teleporter → Export in the admin page.
 
