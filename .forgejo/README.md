@@ -14,6 +14,7 @@ request, and when I start it by hand.
 | `manifests` | Every Kustomize directory builds | A typo or a file missing from a `kustomization.yaml` makes Argo CD fail to sync |
 | `manifests` | The output is valid against the Kubernetes and CRD schemas (kubeconform) | Catches wrong fields and types before the API server does |
 | `manifests` | No plaintext `kind: Secret` | Secrets go in only as `SealedSecret`s. This repo is public |
+| `manifests` | Every file in a `secrets/` folder is a `SealedSecret`, listed or not | kustomize skips unlisted files, and gitleaks skips sealed ciphertext |
 | `manifests` | Every image has a tag or digest, and no tag is `latest` | So nothing changes unless I change it here |
 | `secrets` | gitleaks finds no credentials in the full history | A secret removed in a later commit is still public |
 
@@ -39,7 +40,7 @@ gitleaks git --redact --config .gitleaks.toml .
 - **gitleaks finds a real secret:** rotate it first. Removing it from git doesn't un-publish it.
   Then remove it.
 - **gitleaks false positive:** add a narrow rule to [`.gitleaks.toml`](../.gitleaks.toml). It
-  already allows SealedSecret ciphertext in `secrets/` folders and `checksum/*` annotations.
+  already allows SealedSecret ciphertext lines and `checksum/*` annotations.
 
 ## Files
 

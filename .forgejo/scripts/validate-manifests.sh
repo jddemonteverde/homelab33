@@ -36,6 +36,15 @@ for kustomization in $(find . -name kustomization.yaml -not -path './.git/*' | s
   fi
 done
 
+# Every file in a secrets/ folder must be a SealedSecret, listed in a kustomization.yaml or not:
+# kustomize only renders listed files, and gitleaks skips SealedSecret ciphertext.
+for file in $(find . -path '*/secrets/*' -type f -not -path './.git/*' -not -name kustomization.yaml | sort); do
+  if ! grep -q '^kind: SealedSecret$' "$file" || grep -qE '^kind: Secret$|^[[:space:]]*(data|stringData):' "$file"; then
+    echo "FAIL $file: not a SealedSecret; seal it with kubeseal" >&2
+    failed=1
+  fi
+done
+
 kubeconform -strict -summary \
   -kubernetes-version "$KUBERNETES_VERSION" \
   -schema-location "$K8S_SCHEMAS/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json" \

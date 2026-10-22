@@ -1,9 +1,12 @@
 [extend]
 useDefault = true
 
+# Only the ciphertext lines, not whole secrets/ files: a plaintext Secret saved there by mistake must
+# still be caught. validate-manifests.sh separately requires every secrets/ file to be a SealedSecret.
 [[allowlists]]
 description = "SealedSecret ciphertext, which only the in-cluster controller can decrypt"
-paths = ['''(^|/)secrets/[^/]+\.yaml$''']
+regexTarget = "line"
+regexes = ['''[A-Za-z0-9_.-]+: Ag[A-Za-z0-9+/=]{300,}''']
 
 [[allowlists]]
 description = "checksum/* annotations: sha256 of a ConfigMap or SealedSecret file"
