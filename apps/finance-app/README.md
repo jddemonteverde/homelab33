@@ -19,6 +19,8 @@ It's only reachable from my tailnet.
 - One replica with the `Recreate` strategy, because two pods would open the same SQLite file.
 - It runs as a non-root user.
 - Its NetworkPolicy only lets in Traefik.
+- It has its own Argo CD project, which deploys only into the `finance-app` namespace and creates
+  nothing cluster-wide except that namespace. CI commits here, so a bad commit stays inside it.
 
 ## Releasing a new version
 

@@ -1,0 +1,19 @@
+# finance-app's image bumps are committed by CI, so Argo CD applies its manifests only into its own
+# namespace. The one cluster-scoped object it may create is that Namespace.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: finance-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: The finance app
+  sourceRepos:
+    - https://github.com/jddemonteverde/homelab33.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: finance-app
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

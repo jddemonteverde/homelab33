@@ -27,6 +27,10 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
 - New app: create `apps/<name>/application.yaml`, `apps/<name>/kustomization.yaml` and
   `apps/<name>/manifests/`, then add `- <name>` to `apps/kustomization.yaml`. Infra components
   follow the same shape under `infra/`.
+- An app whose CI commits here (portfolio, finance-app) gets its own AppProject
+  (`apps/<name>/appproject.yaml`) limited to its namespace, and its namespace enforces the
+  `restricted` Pod Security Standard. CI can then change only what runs in that namespace, and
+  never as a privileged pod.
 - Removing an app: delete its line from the parent `kustomization.yaml`. Applications sync with
   `prune: true`, so this uninstalls it from the cluster. Deleting a PVC from git deletes the
   volume and its data.
