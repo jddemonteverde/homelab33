@@ -16,6 +16,10 @@ controller:
   networkPolicy:
     create: true
 
+# No SSO: logins use Argo CD's own admin account, so the Dex server would only be one more service.
+dex:
+  enabled: false
+
 redis:
   networkPolicy:
     create: true
