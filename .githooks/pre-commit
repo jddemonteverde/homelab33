@@ -1,0 +1,40 @@
+#!/bin/sh
+# Blocks a commit that would publish a credential. CI runs the same checks, but only after a push,
+# when the commit is already public. Turn it on once per clone: git config core.hooksPath .githooks
+set -euf
+
+failed=0
+IFS='
+'
+for file in $(git diff --cached --name-only --diff-filter=ACMR); do
+  case "$file" in
+    .env* | */.env* | *.pem | *.key | kubeconfig* | */kubeconfig*)
+      echo "BLOCKED $file: credential file" >&2
+      failed=1
+      continue
+      ;;
+    */secrets/kustomization.yaml) ;;
+    */secrets/*)
+      if ! git show ":$file" | grep -q '^kind: SealedSecret$' ||
+        git show ":$file" | grep -qE '^[[:space:]]*(data|stringData):'; then
+        echo "BLOCKED $file: not a SealedSecret; seal it with kubeseal" >&2
+        failed=1
+      fi
+      ;;
+  esac
+  case "$file" in
+    *.yaml | *.yml)
+      if git show ":$file" | grep -q '^kind: Secret$'; then
+        echo "BLOCKED $file: plaintext Secret; seal it with kubeseal" >&2
+        failed=1
+      fi
+      ;;
+  esac
+done
+
+# Optional here; CI always runs gitleaks.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner --config .gitleaks.toml . || failed=1
+fi
+
+exit "$failed"

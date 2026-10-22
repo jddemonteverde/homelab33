@@ -34,6 +34,14 @@ The `manifests` job is one script. Run it from the repository root, with `kubect
 gitleaks git --redact --config .gitleaks.toml .
 ```
 
+CI only runs after a push, when a commit is already public. A pre-commit hook blocks plaintext
+Secrets, unsealed files in `secrets/` and credential files before they leave the machine, and
+runs gitleaks too if it's installed. Turn it on once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
 ## When it fails
 
 - **Build, schema or image failure:** fix the manifest and push again.
@@ -48,6 +56,7 @@ gitleaks git --redact --config .gitleaks.toml .
 workflows/validate.yml          The workflow: two jobs, manifests and secrets
 scripts/validate-manifests.sh   Build, schema and policy checks
 ../.gitleaks.toml               gitleaks rules, with the allowlist
+../.githooks/pre-commit         The same secret checks, before each commit
 ```
 
 kubectl, kubeconform, gitleaks and both schema sources are pinned. kubectl, kubeconform and

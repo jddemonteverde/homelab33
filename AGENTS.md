@@ -168,7 +168,8 @@ Rules for agents:
   remove it.
 
 `.gitignore` excludes `.env*`, `*.pem`, `*.key` and `kubeconfig*`, and CI runs gitleaks over the
-full history. Optional hardening not yet added: a gitleaks pre-commit hook.
+full history. `.githooks/pre-commit` runs the secret checks before each commit; turn it on with
+`git config core.hooksPath .githooks`.
 
 ## Secrets: Sealed Secrets
 
