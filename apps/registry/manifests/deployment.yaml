@@ -30,7 +30,7 @@ spec:
           image: docker.io/library/registry:3.1.2
           env:
             - name: REGISTRY_STORAGE_DELETE_ENABLED
-              value: "true"
+              value: "false"
             - name: OTEL_TRACES_EXPORTER
               value: none
           ports:
