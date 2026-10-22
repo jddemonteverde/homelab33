@@ -11,7 +11,7 @@ Only BuildKit (to push) and the nodes (to pull) can reach it.
 The nodes pull images with containerd. containerd can't use the cluster's DNS names, and it only
 accepts HTTPS with a trusted certificate, unless the registry is on `localhost`. So:
 
-- `registry` is the official `registry` image (3.1.2), with a 5 Gi volume and no login.
+- `registry` is the official `registry` image, with a 5 Gi volume and no login.
 - `registry-proxy` runs HAProxy on every node. It listens on `127.0.0.1:5000` and forwards to the
   registry.
 - My apps use `localhost:5000/<app>:<tag>` as their image, and every node can pull it.

@@ -20,7 +20,7 @@ Grafana can't save changes to them, so I edit them through git.
 ## How it's set up
 
 It's the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
-Helm chart, version 91.9.0, installed by Argo CD with `values.yaml` from this folder.
+Helm chart, pinned, installed by Argo CD with `values.yaml` from this folder.
 
 | Part | What it does |
 | --- | --- |

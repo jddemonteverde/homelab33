@@ -51,7 +51,7 @@ Both were sitting unused before this. Now they run all the time.
 | Memory | 8 GB | 8 GB |
 | Disk | 250 GB | 250 GB |
 | OS | Ubuntu 22.04 LTS | Ubuntu 22.04 LTS |
-| k3s | v1.36.4 | v1.36.4 |
+| k3s | 1.36 | 1.36 |
 
 <img src="docs/images/homelab33-hardware.jpg" alt="The desktop as node 1 with the laptop on top of it as node 2, next to a UPS, under a shelf holding a 5-port network switch and a surge protector power strip" width="480">
 

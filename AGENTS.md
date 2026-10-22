@@ -58,8 +58,8 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   `pihole` also admits DNS (port 53) from the LAN. `monitoring` admits Traefik on Grafana's port
   and its own pods. `portfolio` also admits its `cloudflared` pods, whose own policy lets them
   reach only DNS, the site, and the internet on port 7844.
-- LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the cluster's only LAN
-  listener open to any device (node-exporter's requires a token; see Monitoring). Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
+- LAN DNS: Pi-hole (`apps/pihole`) is the home network's DNS server and the only workload with a
+  LAN listener open to any device (node-exporter's requires a token; see Monitoring). Its pod publishes `hostPort` 53 (UDP and TCP) on the control-plane node's LAN
   address (`hostIP`), which the router hands out as the DNS server, so never drop its
   `nodeSelector`. Keep the `hostIP`: without it the rule also captures the node's own resolver
   (`127.0.0.53`), and the node can't resolve names, not even to pull Pi-hole's image. The
@@ -121,8 +121,9 @@ any part of the tree can be built with `kubectl kustomize <dir>`.
   against pinned Kubernetes and CRD schemas, and rejects plaintext Secrets and unpinned images.
   CI (`.forgejo/workflows/validate.yml`) runs the same script, plus gitleaks over the full
   history (`.gitleaks.toml`), on every push to `main` and every pull request. It flags a bad
-  commit but doesn't block it: `main` has no branch protection and app CI pushes image bumps
-  straight to it.
+  commit but doesn't block it. `main` is protected: only the owner pushes, except that CI's
+  account may change `apps/portfolio/manifests/deployment.yaml` and
+  `apps/finance-app/manifests/deployment.yaml`, for image bumps. Don't move or rename those files.
 
 ## Security
 
@@ -160,8 +161,9 @@ Measures in place:
   out only; its route is set in Cloudflare's dashboard and points straight at the portfolio
   Service, never at Traefik, so no other app can be reached through it. Exposing anything else
   through it, or adding another tunnel, widens exposure (see the rules below).
-- The one LAN listener open to any device is Pi-hole's DNS on port 53 of the control-plane node;
-  never forward port 53 to it from the internet. node-exporter's port 9100 on every node also
+- Among the cluster's workloads, the one LAN listener open to any device is Pi-hole's DNS on port
+  53 of the control-plane node; never forward port 53 to it from the internet. The nodes' own
+  ports (SSH, k3s) are firewalled on the nodes, outside this repository. node-exporter's port 9100 on every node also
   faces the LAN, but kube-rbac-proxy answers only requests carrying a token the Kubernetes API
   authorizes.
 - CI is contained: jobs have no Docker socket, images build on rootless BuildKit, and CI pods

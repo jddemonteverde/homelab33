@@ -13,14 +13,14 @@ site even when I'm not home.
 
 | | |
 | --- | --- |
-| Image | `pihole/pihole` 2026.09.0, pinned by digest |
+| Image | `pihole/pihole`, pinned by digest |
 | Upstream DNS | Quad9 (`9.9.9.9`, `149.112.112.112`) |
 | Runs on | Always the desktop |
 | Storage | Volume for settings, lists and query history |
 | Secrets | Admin password, as a Sealed Secret |
 
 - Port 53 (UDP and TCP) is published with a `hostPort` on the desktop's LAN address. It's the only
-  thing in the cluster any device on my home network can reach. It's not forwarded to the
+  app in the cluster that any device on my home network can reach. It's not forwarded to the
   internet.
 - The `hostPort` is tied to that one address on purpose. Without it, it would also catch the
   node's own DNS lookups, and the node couldn't resolve anything, not even to pull Pi-hole's

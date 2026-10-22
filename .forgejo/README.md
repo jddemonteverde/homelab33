@@ -1,8 +1,9 @@
 # CI for this repository
 
 Argo CD applies every commit on `main` to the cluster, so a broken or unsafe commit goes live right
-away. Nobody reviews many of those commits: my apps' CI pushes image bumps here by itself. This
-workflow checks every commit, so I find out when one is bad.
+away. My apps' CI pushes image bumps here by itself, and `main`'s branch rule lets it change only
+those apps' `deployment.yaml` files. This workflow checks every commit, so I find out when one is
+bad.
 
 It runs on my own [Forgejo runner](../apps/forgejo-runner/), on every push to `main`, on every pull
 request, and when I start it by hand.
@@ -21,8 +22,8 @@ request, and when I start it by hand.
 ## It's an alarm, not a gate
 
 A failed run turns the commit red, but the commit is already on `main` and Argo CD applies it
-anyway. To block bad commits, `main` would need branch protection that requires this workflow, and
-my apps' CI would have to open pull requests instead of pushing. Not done yet.
+anyway. To block bad commits, the branch rule would have to require this workflow, and my apps'
+CI would have to open pull requests instead of pushing.
 
 ## Running it locally
 

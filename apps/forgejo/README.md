@@ -16,10 +16,10 @@ It's only reachable from my tailnet, so there's no public login page.
 
 | | |
 | --- | --- |
-| Image | Forgejo 15.0.9, rootless |
+| Image | Forgejo, rootless |
 | Storage | 50 Gi volume for repositories, the database and attachments |
 | Web | HTTPS through Traefik, tailnet only |
-| Secrets | `SECRET_KEY`, `INTERNAL_TOKEN` and others, as a Sealed Secret |
+| Secrets | `SECRET_KEY`, as a Sealed Secret |
 
 - It runs as a non-root user with no capabilities, and the namespace enforces the `restricted` Pod
   Security Standard.

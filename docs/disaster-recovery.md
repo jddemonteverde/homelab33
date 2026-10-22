@@ -22,7 +22,6 @@ All volumes use k3s's `local-path` storage, so each one is a folder on one machi
 | Registry images | `registry-data` (5 Gi), laptop | Nothing lasting: re-run each app's release workflow |
 | Grafana | `monitoring-grafana` (2 Gi), desktop | Nothing: dashboards are in git |
 | Prometheus | 20 Gi volume, desktop | Metrics history only |
-| Portfolio | `portfolio-data` (1 Gi), laptop | Old data from a contact form the site no longer has |
 
 homelab33 itself is safe even if Forgejo is lost: it's mirrored to GitHub, and Argo CD reads it
 from there. The app repositories (finance-app, portfolio, blog) are only on Forgejo and in my
